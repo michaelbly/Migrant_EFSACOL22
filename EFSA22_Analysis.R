@@ -81,7 +81,7 @@ response_with_composites <- recoding_preliminary(response, loop)
 #write.csv(response_with_composites, "Input/datasets/arschgaggi.csv")
 #response_with_composites <- read.csv("Input/datasets/arschgaggi.csv", sep = ";")
 
-dap_name <- "EFSA_prepreliminary"
+dap_name <- "preliminary"
 analysisplan <- read.csv(sprintf("input/dap/dap_%s.csv",dap_name), stringsAsFactors = F, sep = ";")
 #analysisplan$independent.variable <-  "female_headed"
 
@@ -113,7 +113,7 @@ result <- from_analysisplan_map_to_output(response_with_composites, analysisplan
                                           questionnaire = NULL, confidence_level = 0.95)
 
 
-name <- "EFSA_PrePreliminary"
+name <- "EFSA_Preliminary"
 saveRDS(result,paste(sprintf("output/RDS/result_%s.RDS", name)))
 
 summary <- bind_rows(lapply(result[[1]], function(x){x$summary.statistic}))
