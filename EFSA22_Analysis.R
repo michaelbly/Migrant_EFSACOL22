@@ -2,7 +2,7 @@
 rm(list=ls(all=T))
 R.version
   library(rlang)
-#  library(xlsx)
+  library(xlsx)
   library(plyr) # rbind.fill
   library(dplyr)
   library(expss)
@@ -20,11 +20,8 @@ R.version
   source("R/functions/postprocessing_functions.R")
   source("R/functions/to_alphanumeric_lowercase.R")
   source("R/functions/analysisplan_factory.R")
-  source("R/functions/HNO_Recoding.R")
   source("R/functions/Binary_Recoding.R")
-  source("R/functions/HNO_Recoding_hum_condition.R")
-  #source("R/functions/presentation_recoding.R")
-  #source("R/functions/gimac_recoding.R")
+
 
 #LOAD INPUT FILES 
   source("R/1_load_inputs.R",local = T)
@@ -55,18 +52,18 @@ R.version
   
 
 #CREATE NEW FUNCTION FOR WEIGHTING
-#Gov level aggregation
-response <- response %>% drop_na(weights)
-response$weights <- ifelse(response$strata == "camps_wb", 1, 
-                           response$weights)
+#response <- response %>% drop_na(weights)
+#response$weights <- ifelse(response$strata == "camps_wb", 1, 
+#                           response$weights)
 
+response$weights <- 1
  weight_fun<-function(df){
-   df$weights
+  df$weights
  }
-  
+
 
 #RECODING OF INDICATORS
-response_with_composites <- recoding_hno(response, loop)
+response_with_composites <- recoding_preliminary(response, loop)
 
 
 #DISAGGREGATE MALE AND FEMALE HEADED HHs
@@ -79,39 +76,46 @@ response_with_composites <- recoding_hno(response, loop)
 #response_with_composites_nodisab <- subset(response_with_composites, response_with_composites$lot_diff == 0 & 
 #                                          response_with_composites$cannot_diff == 0)
 
-
+#response_with_composites <- read.csv("Input/datasets/gaggihallo.csv")
 #LOAD ANALYSISPLAN
-dap_name <- "opt_hno"
+#write.csv(response_with_composites, "Input/datasets/arschgaggi.csv")
+#response_with_composites <- read.csv("Input/datasets/arschgaggi.csv", sep = ";")
+
+dap_name <- "EFSA_prepreliminary"
 analysisplan <- read.csv(sprintf("input/dap/dap_%s.csv",dap_name), stringsAsFactors = F, sep = ";")
-analysisplan$independent.variable <-  "female_headed"
-analysisplan$independent.variable <-  "gazans_displaced"
-analysisplan$independent.variable <-  "agricultural_hh"
-analysisplan$independent.variable <-  "recent_shelter_damage"
-analysisplan$independent.variable <-  "in_camp_refugee"
-analysisplan$repeat.for.variable <- "region"
+#analysisplan$independent.variable <-  "female_headed"
 
 
+#analysisplan$repeat.for.variable <- "pop_group"
+#response_with_composites$one <- "one"
 
 #AGGREGATE ACROSS DISTRICTS OR/AND POPULATION GROUPS
 #analysisplan <- analysisplan_nationwide(analysisplan)
 analysisplan <- analysisplan_pop_group_aggregated(analysisplan)
 #analysisplan$hypothesis.type <- "group_difference"
-response_with_composites$cluster_id <- ifelse(response_with_composites$region == "ej" |
-                                                response_with_composites$region == "west_bank", 
-                                                      response_with_composites$locality_code, 
-                                              response_with_composites$X_uuid)
+response_with_composites <- filter(response_with_composites, 
+                  pop_group != "pendular" &
+                    pop_group != "transito")
+
 #response_with_composites$l7_iii <- NULL
 
+#response_with_composites <- response_with_composites[,c("SA1_poor", "SA1_borderline", "SA1_acceptable", "departamento")]
+#response_with_composites = response_with_composites[-1,]
+#response_with_composites$SA1_poor <- as.numeric(response_with_composites$SA1_poor)
+#response_with_composites$SA1_borderline <- as.numeric(response_with_composites$SA1_borderline)
+#response_with_composites$SA1_acceptable <- as.numeric(response_with_composites$SA1_acceptable)
+
+#response_with_composites <- response_with_composites[,c("hno_severity_1", "hno_severity_2", "hno_severity_3")]
+
+
 result <- from_analysisplan_map_to_output(response_with_composites, analysisplan = analysisplan,
-                                          weighting = weight_fun, cluster_variable_name = "cluster_id",
-                                          questionnaire = questionnaire, confidence_level = 0.95)
+                                          weighting = NULL, cluster_variable_name = NULL,
+                                          questionnaire = NULL, confidence_level = 0.95)
 
 
-name <- "oPt_hno_overall_removed s_16"
+name <- "EFSA_PrePreliminary"
 saveRDS(result,paste(sprintf("output/RDS/result_%s.RDS", name)))
-#summary[which(summary$dependent.var == "g51a"),]
-response_with_composites$strata <- ifelse(response_with_composites$strata == "area_a_b", "area_ab", 
-                                          response_with_composites$strata)
+
 summary <- bind_rows(lapply(result[[1]], function(x){x$summary.statistic}))
 write.csv(summary, sprintf("output/raw_results/raw_results_%s.csv", name), row.names=F)
 summary <- read.csv(sprintf("output/raw_results/raw_results_%s.csv", name), stringsAsFactors = F)
@@ -136,9 +140,5 @@ for (i in 1:length(groups)) {
 }
 
 
-response$gaggi <- ifelse(response$remote_learning > response$tot_school_aged, 1,0)
-response$tot_school_aged <- response$school_girls_5_10 + response$school_girls_11_15 + 
-  response$school_girls_16_17 + response$school_boys_5_10 + response$school_boys_11_15 +
-  response$school_boys_16_17
-table(response$gaggi)
+
 

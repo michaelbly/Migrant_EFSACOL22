@@ -1,5 +1,5 @@
 
-#recoding_preliminary <- function(r, loop) {
+recoding_preliminary <- function(r, loop) {
 
 r=response
 loop_05 <- loop[which(loop$edad < 5), ]
@@ -9,77 +9,83 @@ loop_512 <- loop[which(loop$edad <= 12 & loop$edad >= 5), ]
 # CARACTERISTICAS SOCIODEMOGRAFICAS
 ###############################################################
 # % de hogares por sexo del jefe del hogar
-r$D1_1 <- ifelse(r$sexo_jh == "hombre", 1,0)
-r$D1_2 <- ifelse(r$sexo_jh == "mujer", 1,0)
+r$d1_1 <- ifelse(r$sexo_jh == "hombre", 1,0)
+r$d1_2 <- ifelse(r$sexo_jh == "mujer", 1,0)
 
 
 # Promedio miembros del hogar
-r$D2 <- as.numeric(r$nr_personas_familia)
+r$d2 <- as.numeric(r$nr_personas_familia)
 
 
 # % de hogares con al menos un miembro en estado de embarazo
-r$D3 <- ifelse(r$presencia_embarazo == "si", 1, 0)
+r$d3 <- ifelse(r$presencia_embarazo == "si", 1, 0)
 
 
 # % de hogares con al menos un miembro mayor de 65 anos
-r$D4 <- ifelse(r$presencia_65 == "si", 1,0)
+r$d4 <- ifelse(r$presencia_65 == "si", 1,0)
 
 
 # % de hogares con al menos un miembro menor de 5 anos
-r$D5 <- ifelse(r$presencia_0_59_meses == "si",1,0)
+r$d5 <- ifelse(r$presencia_0_59_meses == "si",1,0)
 
 
-# % de hogares en los que el jefe del hogar NO ha completado la educacion secundario
-r$D6 <- ifelse(r$nivel_estudios_jh == "primaria_completa" | r$nivel_estudios_jh == "primaria_incompleta" |
-                 r$nivel_estudios_jh == "sin_educacion", 1, 0)
+# % de hogares por nivel educativo del jefe del hogar
+r$d6_i <- ifelse(r$nivel_estudios_jh == "primaria_completa", 1, 0)
+r$d6_ii <- ifelse(r$nivel_estudios_jh == "primaria_incompleta", 1, 0)
+r$d6_iii <- ifelse(r$nivel_estudios_jh == "secundaria_completa", 1, 0)
+r$d6_iv <- ifelse(r$nivel_estudios_jh == "secundaria_incompleta", 1, 0)
+r$d6_v <- ifelse(r$nivel_estudios_jh == "sin_educacion", 1, 0)
+r$d6_vi <- ifelse(r$nivel_estudios_jh == "tecnico_tecnologico_completo", 1, 0)
+r$d6_vii <- ifelse(r$nivel_estudios_jh == "tecnico_tecnologico_incompleto", 1, 0)
+r$d6_viii <- ifelse(r$nivel_estudios_jh == "universitario_completo_o_postgrado", 1, 0)
+r$d6_iv <- ifelse(r$nivel_estudios_jh == "universitario_incompleto", 1, 0)
 
 
 # % de hogares en los que el jefe del hogar tiene una discapacidad
-r$D7 <- ifelse(r$discapacidad_jh == "mucha_dificultad" | 
+r$d7 <- ifelse(r$discapacidad_jh == "mucha_dificultad" | 
                  r$discapacidad_jh == "no_puede_hacer_nada", 1, 0)
 
 
 # % de hogares en los que el jefe del hogar padece una enfermedad cronica
-r$D8 <- ifelse(r$enfermedad_cronica_jh == "si", 1, 0)
+r$d8 <- ifelse(r$enfermedad_cronica_jh == "si", 1, 0)
 
 
 # % de hogares en los que el jefe del hogar padece una enfermedad mental
-r$D9 <- ifelse(r$enfermedad_mental_jh == "si", 1, 0)
+r$d9 <- ifelse(r$enfermedad_mental_jh == "si", 1, 0)
 
 
 # % de hogares en los que el encuestador se identifica como afrodescendiente
-r$D10 <- ifelse(r$ind1_pertenencia_etnica == "afrodescendiente_negro_mulato_", 1, 0)
-
-
-# % de hogares en los que el encuestado se identifica como indigena
-r$D11 <- ifelse(r$ind1_pertenencia_etnica == "indigena", 1, 0)
+r$d10_i <- ifelse(r$ind1_pertenencia_etnica == "afrodescendiente_negro_mulato_", 1, 0)
+r$d10_ii <- ifelse(r$ind1_pertenencia_etnica == "indigena", 1, 0)
+r$d10_iii <- ifelse(r$ind1_pertenencia_etnica == "gitano_rrom", 1, 0)
+r$d10_iv <- ifelse(r$ind1_pertenencia_etnica == "mestizo", 1, 0)
+r$d10_v <- ifelse(r$ind1_pertenencia_etnica == "ninguno", 1, 0)
+r$d10_vi <- ifelse(r$ind1_pertenencia_etnica == "palenquero", 1, 0)
+r$d10_vii <- ifelse(r$ind1_pertenencia_etnica == "raizal", 1, 0)
 
 
 # % de hogares en los que el encuestado se identifica como transgenero
-r$D12 <- ifelse(r$ind1_genero == "transgenero" | 
+r$d11 <- ifelse(r$ind1_genero == "transgenero" | 
                   r$ind1_genero == "mujer_trans", 1, 0)
 
 
-# % de hogares en los que el jefe del hogar es mayor de 65 anos
-# % de hogares en los que el jefe del hogar es monoparental
+# % de hogares por rango de edad del jefe 
+r$d12 <- ifelse(r$ind1_pertenencia_etnica == "raizal", 1, 0)
 
 
-# % de hogares con al menos un nino menor de 5 anos
-r$D17 <- case_when(loop_05$edad[match(r$registro, loop_05$registro)] < 5 ~ 1,
-                     TRUE ~ 0)
+
+# % de hogares monoparental
 
 
-# % de hogares con al menos dos ninos menores de 5 anos
 
+# % de hogares por rangos de tamano del hogar 
+r$d15_i <- ifelse(r$nr_personas_familia == 1, 1,0)
+r$d15_ii <- ifelse(r$nr_personas_familia > 1 & r$nr_personas_familia <= 2, 1,0)
+r$d15_iii <- ifelse(r$nr_personas_familia > 2 & r$nr_personas_familia <= 3, 1,0)
+r$d15_iv <- ifelse(r$nr_personas_familia > 3 & r$nr_personas_familia <= 4, 1,0)
+r$d15_v <- ifelse(r$nr_personas_familia > 4 & r$nr_personas_familia <= 5, 1,0)
+r$d15_vi <- ifelse(r$nr_personas_familia > 5, 1,0)
 
-# % de hogares con al menos un nino entre 5 y 12 anos
-r$D19 <- case_when(loop_512$edad[match(r$registro, loop_512$registro)] >= 5 &
-                     loop_512$edad[match(r$registro, loop_512$registro)] <= 12 ~ 1,
-                   TRUE ~ 0)
-
-
-# % de hogares con 5 o mas miembros
-r$D20 <- ifelse(!is.na(r$ind5_edad), 1,0)
 
 
 ###############################################################
@@ -95,12 +101,27 @@ r$fcs <-
   (as.numeric(r$fcs_cereales)*2) +(as.numeric(r$fcs_leguminosas)*3) +(as.numeric(r$fcs_leche)*4) + (as.numeric(r$fcs_carne)*4)+ 
   as.numeric(r$fcs_vegetales) + as.numeric(r$fcs_frutas) + (as.numeric(r$fcs_grasas)*0.5) + (as.numeric(r$fcs_azucares)*0.5)
 
-r$SA1_poor <- ifelse(r$fcs <= 21, 1,0)
-r$SA1_borderline <- ifelse(r$fcs > 21 & r$fcs <=35,1,0)
-r$SA1_acceptable <- ifelse(r$fcs > 35,1,0)
+r$sa1_poor <- ifelse(r$fcs <= 28, 1,0)
+r$sa1_borderline <- ifelse(r$fcs > 28 & r$fcs <=42,1,0)
+r$sa1_acceptable <- ifelse(r$fcs > 42,1,0)
 
 
-# cuota media del gasto en alimentacion (en % del gasto total)
+# % de hogares por Coping Strategies Index Score 
+r$csi_score <- 
+  (as.numeric(r$csi_alimentos_menos_preferidos)*1) +(as.numeric(r$csi_pedir_prestados_alimentos)*2) +
+  (as.numeric(r$csi_reducir_tamano_porciones)*1) + (as.numeric(r$csi_reducir_adultos)*3)+ 
+  (as.numeric(r$csi_reducir_numero_comidas)*1) 
+
+r$sa2_i <- ifelse(r$csi_score <= 3, 1,0)
+r$sa2_ii <- ifelse(r$csi_score > 3 & r$csi_score <=18, 1,0)
+r$sa2_iii <- ifelse(r$csi_score > 18, 1,0)
+
+
+# % de hogares por FCS-CSI Ajuste
+r$sa3_i <- ifelse(r$sa1_acceptable == 1 & r$sa2_i == 1, 1,0)
+r$sa3_ii <- ifelse(r$sa1_acceptable == 1 & (r$sa2_i == 1 | r$sa2_ii == 1), 1,0)
+r$sa3_iii <- ifelse(r$sa1_borderline == 1, 1,0)
+r$sa3_iv <- ifelse(r$sa1_poor == 1, 1,0)
 
 
 # % de hogares que recurren a estrategias de stress/crisis/emergency para hacer frente a la falta de alimentos o de dinero para comprarlos
@@ -126,35 +147,35 @@ r$emergency <-
   ifelse(
     r$lcs_actividades_riesgo %in% c("no__porque_ya_lo_habia_hecho_durante_los_ultimos_12_meses_y_no_podia_seguir_haciendolo", "si") |
       r$lcs_vender_casa %in% c("no__porque_ya_lo_habia_hecho_durante_los_ultimos_12_meses_y_no_podia_seguir_haciendolo", "si") |
-      r$lcs_pedir_ayuda %in% c("no__porque_ya_lo_habia_hecho_durante_los_ultimos_12_meses_y_no_podia_seguir_haciendolo", "si") |
+      r$lcs_pedir_ayuda %in% c("no__porque_ya_lo_habia_hecho_durante_los_ultimos_12_meses_y_no_podia_seguir_haciendolo", "si"),
     1,
     0
   )
 
-r$SA3_stress <- ifelse(r$stress == 1, 1,0)
-r$SA3_crisis <- ifelse(r$crisis == 1, 1,0)
-r$SA3_emergency <- ifelse(r$emergency == 1, 1,0)
+r$sa6_stress <- ifelse(r$stress == 1, 1,0)
+r$sa6_crisis <- ifelse(r$crisis == 1, 1,0)
+r$sa6_emergency <- ifelse(r$emergency == 1, 1,0)
+
+
+# % de hogares por LCS para CARI
+r$sa7_i <- 
+
+
 
 
 # % de hogares por situacion de seguridad alimentaria segun la metodologia del CARI
 
 
 # % de hogares que han comido menos de 3 veces el dia anterior a la recogida de datos
-r$SA5 <- ifelse(r$nr_comidas_7d != "3_comidas_o_mas",1,0)
+r$sa9 <- ifelse(r$nr_comidas_7d != "3_comidas_o_mas",1,0)
 
 
 # % de hogares que han comido menos de 3 veces el dia anterior de la recogida de datos
-r$SA5 <- ifelse(r$nr_comidas_ayer != "3_comidas_o_mas",1,0)
+r$sa10 <- ifelse(r$nr_comidas_ayer != "3_comidas_o_mas",1,0)
 
 
 # % de hogares segun la Household Dietary Diversity Scale
 
-
-# promedio csi Score de hogares por Coping Strategies Index Score
-r$SA8 <- 
-  (as.numeric(r$csi_alimentos_menos_preferidos)*1) +(as.numeric(r$csi_pedir_prestados_alimentos)*2) +
-  (as.numeric(r$csi_reducir_tamano_porciones)*1) + (as.numeric(r$csi_reducir_adultos)*3)+ 
-  (as.numeric(r$csi_reducir_numero_comidas)*1) 
 
 
 
@@ -162,7 +183,7 @@ r$SA8 <-
 # SITUACION SOCIOECONOMICA DEL HOGAR
 ###############################################################
 # % de hogares en los que una persona distinta del jefe del hogar aporta la mayor parte de los recursos
-r$SO1 <- ifelse(r$miembro_mayor_recursos != "jefe_jefa_del_hogar", 1, 0)
+r$so1 <- ifelse(r$miembro_mayor_recursos != "jefe_jefa_del_hogar", 1, 0)
 
 
 # % de hogares segun la fuente prinicipal de ingresos 
@@ -170,41 +191,41 @@ r$SO1 <- ifelse(r$miembro_mayor_recursos != "jefe_jefa_del_hogar", 1, 0)
 
 # ingresos medios mensuales por miembro del hogar
 r$ingreso_pp <- r$ingreso / r$nr_personas_familia
-r$SO3 <- r$ingreso_pp
+r$so3 <- r$ingreso_pp
 
 
 # % de hogares que declaran tener una deuda en el momento de la recogida de datos
-r$SO4 <- ifelse(r$deuda == "si",1,0)
+r$so4 <- ifelse(r$deuda == "si",1,0)
 
 
 # importe medio de la dueda
-r$SO5 <- r$valor_deuda
+r$so5 <- r$valor_deuda
 
 
 # % de hogares por motivo de su deuda
-r$SO6_i <- ifelse(r$razon_deuda == "comprar_comida")
-r$SO6_ii <- ifelse(r$razon_deuda == "comprar_insumos_productivos")
-r$SO6_iii <- ifelse(r$razon_deuda == "comprar_ropa__zapatos")
-r$SO6_iv <- ifelse(r$razon_deuda == "cubrir_gastos_de_salud")
-r$SO6_v <- ifelse(r$razon_deuda == "cubrir_servicios_basicos__agua__electricidad_")
-r$SO6_vi <- ifelse(r$razon_deuda == "pagar_la_escuela_o_gastos_de_educacion")
-r$SO6_vii <- ifelse(r$razon_deuda == "pagar_renta_o_alquiler_de_la_vivienda")
-r$SO6_viii <- ifelse(r$razon_deuda == "pagar_viajes")
+r$so6_i <- ifelse(r$razon_deuda == "comprar_comida",1,0)
+r$so6_ii <- ifelse(r$razon_deuda == "comprar_insumos_productivos",1,0)
+r$so6_iii <- ifelse(r$razon_deuda == "comprar_ropa__zapatos",1,0)
+r$so6_iv <- ifelse(r$razon_deuda == "cubrir_gastos_de_salud",1,0)
+r$so6_v <- ifelse(r$razon_deuda == "cubrir_servicios_basicos__agua__electricidad_",1,0)
+r$so6_vi <- ifelse(r$razon_deuda == "pagar_la_escuela_o_gastos_de_educacion",1,0)
+r$so6_vii <- ifelse(r$razon_deuda == "pagar_renta_o_alquiler_de_la_vivienda",1,0)
+r$so6_viii <- ifelse(r$razon_deuda == "pagar_viajes",1,0)
 
 
 # % de hogares que declaran haber disminuido sus ingresos en los ultimos 12 meses
-r$SO7 <- ifelse(r$cambio_ingresos == "disminuyeron_los_ingresos" | 
+r$so7 <- ifelse(r$cambio_ingresos == "disminuyeron_los_ingresos" | 
                   r$cambio_ingresos == "se_perdieron_los_ingresos_por_completo",
                 1,0)
 
 
 # % de hogares por motivo de empeoramiento de su situacion economica en los ultimos 12 meses
-r$SO7_i <- ifelse(r$razon_cambio_ingresos == "algun_miembro_del_hogar_o_grupo_de_viaje_murio")
-r$SO7_ii <- ifelse(r$razon_cambio_ingresos == "algun_miembro_del_hogar_o_grupo_de_viaje_perdio_su_empleo_o_redujo_las_horas_de_trabajo")
-r$SO7_iii <- ifelse(r$razon_cambio_ingresos == "algun_miembro_del_hogar_o_grupo_de_viaje_se_enfermo_o_esta_incapacitado")
-r$SO7_iv <- ifelse(r$razon_cambio_ingresos == "dejo_de_recibir_ayuda_de_familia_o_amigos__incluye_remesas_")
-r$SO7_v <- ifelse(r$razon_cambio_ingresos == "dejo_de_recibir_la_asistencia_del_gobierno_o_de_una_organizacion")
-r$SO7_vi <- ifelse(r$razon_cambio_ingresos == "los_salarios_se_han_reducido")
+r$so8_i <- ifelse(r$razon_cambio_ingresos == "algun_miembro_del_hogar_o_grupo_de_viaje_murio",1,0)
+r$so8_ii <- ifelse(r$razon_cambio_ingresos == "algun_miembro_del_hogar_o_grupo_de_viaje_perdio_su_empleo_o_redujo_las_horas_de_trabajo",1,0)
+r$so8_iii <- ifelse(r$razon_cambio_ingresos == "algun_miembro_del_hogar_o_grupo_de_viaje_se_enfermo_o_esta_incapacitado",1,0)
+r$so8_iv <- ifelse(r$razon_cambio_ingresos == "dejo_de_recibir_ayuda_de_familia_o_amigos__incluye_remesas_",1,0)
+r$so8_v <- ifelse(r$razon_cambio_ingresos == "dejo_de_recibir_la_asistencia_del_gobierno_o_de_una_organizacion",1,0)
+r$so8_vi <- ifelse(r$razon_cambio_ingresos == "los_salarios_se_han_reducido",1,0)
 
 
 # cuota media del gasto en gastos medicos o cuidado en la salud (en % del gasto total)
@@ -214,8 +235,193 @@ r$SO7_vi <- ifelse(r$razon_cambio_ingresos == "los_salarios_se_han_reducido")
 ###############################################################
 # SITUACION MIGRATORIA
 ###############################################################
+# % de hogares venezolanos que llegaron hace menos de 6 meses
+r$date_assessment <- strptime(as.character(r$fecha_in), "%d_%m_%Y")
+r$date_assessment <-  format(r$date_assessment, "%Y-%m-%d")
+
+r$fecha_llegada <- strptime(as.character(r$fecha_llegada_completo), "%d_%m_%Y")
+r$fecha_llegada <-  format(r$fecha_llegada, "%Y-%m-%d")
+
+r$diff_dates = difftime(r$date_assessment, r$fecha_llegada, units = "days")
+r$m1 <- ifelse(r$diff_dates <= 180, 1,0)
 
 
-#return(r)
-#}
+# % de hogares venezolanos que llegaron hace mas que 6 meses
+r$m2 <- ifelse(r$diff_dates > 180,1,0)
+
+
+# % de hogares por documento que posee el jefe del hogar
+r$m3_i <- ifelse(grepl("cedula_venezolana_vigente", r$documentos),1,0)
+r$m3_ii <- ifelse(grepl("cedula_venezolana_vencida", r$documentos),1,0)
+r$m3_iii <- ifelse(grepl("pasaporte_venezolano_vencido", r$documentos),1,0)
+r$m3_iv <- ifelse(grepl("pasaporte_venezolano_vigente", r$documentos),1,0)
+r$m3_v <- ifelse(grepl("cedula_colombiana", r$documentos),1,0)
+r$m3_vi <- ifelse(grepl("registro_civil_de_nacimiento_colombiano", r$documentos),1,0)
+r$m3_vii <- ifelse(grepl("registro_civil_de_nacimiento_venezolano", r$documentos),1,0)
+r$m3_viii <- ifelse(grepl("ppt", r$documentos),1,0)
+r$m3_iv <- ifelse(grepl("pep", r$documentos),1,0)
+r$m3_iv <- ifelse(grepl("sin_documentos", r$documentos),1,0)
+
+
+# % de hogares venezolanos sin permiso legal para trabajar en Colombia
+r$m4 <- case_when(r$nacionalidad_jefe_hogar %in% c("venezolano", "doble_nacionalidad__colombo__venezolano_") & r$m3_viii == 1 ~ 1,
+                  r$nacionalidad_jefe_hogar %in% c("venezolano", "doble_nacionalidad__colombo__venezolano_") & r$m3_v == 1 ~ 1,
+                  r$nacionalidad_jefe_hogar %in% c("venezolano", "doble_nacionalidad__colombo__venezolano_") & r$m3_viii == 0 ~ 0,
+                  r$nacionalidad_jefe_hogar %in% c("venezolano", "doble_nacionalidad__colombo__venezolano_") & r$m3_v == 0 ~ 0,
+                  TRUE ~ NA_real_)
+
+
+
+# % de hogares venezolanos que han completado el registro del Estatuto Temporal de Proteccion (ETPV)
+r$m5 <- ifelse(r$registracion_ETPV == "si_y_lo_finalizo",1,0)
+
+
+# % de hogares venezolanos por motivo de no haber completado el registro del Estatuto Temporal de Proteccion (ETPV)
+r$m6_i <- case_when(r$registracion_ETPV_porque_no == "falta_documentacion" ~ 1,
+                    r$registracion_ETPV_porque_no == "_" ~ NA_real_,
+                   TRUE ~ 0)
+r$m6_ii <- case_when(r$registracion_ETPV_porque_no == "ha_intentado_registrarse__pero_se_enfrenta_a_otras_barreras" ~ 1,
+                    r$registracion_ETPV_porque_no == "_" ~ NA_real_,
+                    TRUE ~ 0)
+r$m6_iii <- case_when(r$registracion_ETPV_porque_no == "ha_intentado_registrarse__pero_tenia_problemas_tecnicos_con_la_pagina_de_migracion_colombia__ej_deja_de_funcionar_durante_el_registro_" ~ 1,
+                    r$registracion_ETPV_porque_no == "_" ~ NA_real_,
+                    TRUE ~ 0)
+r$m6_iv <- case_when(r$registracion_ETPV_porque_no == "no_conoce_el_proceso" ~ 1,
+                    r$registracion_ETPV_porque_no == "_" ~ NA_real_,
+                    TRUE ~ 0)
+r$m6_v <- case_when(r$registracion_ETPV_porque_no == "no_quiere_registrarse" ~ 1,
+                    r$registracion_ETPV_porque_no == "_" ~ NA_real_,
+                    TRUE ~ 0)
+r$m6_vi <- case_when(r$registracion_ETPV_porque_no == "no_sabe_donde_puede_hacer_el_registro" ~ 1,
+                    r$registracion_ETPV_porque_no == "_" ~ NA_real_,
+                    TRUE ~ 0)
+r$m6_vii <- case_when(r$registracion_ETPV_porque_no == "no_tiene_acceso_al_internet" ~ 1,
+                     r$registracion_ETPV_porque_no == "_" ~ NA_real_,
+                    TRUE ~ 0)
+
+
+###############################################################
+# ASISTENCIA HUMANITARIA
+###############################################################
+# % de hogares que declaran haber recibido ayuda de una organizacion no gubernamental en los ultimos 6 meses
+r$ah1 <- ifelse(r$asistencia_organizacion == "si",1,0)
+
+
+# % de hogares que declaran haber recibido ayuda del gobierno en los ultimos 6 meses
+r$ah2 <- ifelse(r$asistencia_gobierno == "si",1,0)
+
+
+# % de hogares que declaran haber recibido ayuda del Programa Mundial de Alimentos en los ultimos 6 meses
+r$ah3 <- ifelse(r$asistencia_PMA == "si",1,0)
+
+
+# % de hogares que declaran haber recibido ayuda de su comunidad, familia o amigos para cubrir el costo de alimentos u otras necesidades en los ultimos 6 meses
+r$ah4 <- ifelse(r$asistencia_familia == "si",1,0)
+
+
+
+###############################################################
+# SITUACION DE LA VIVIENDA Y ACTIVOS DEL HOGAR
+###############################################################
+# % de hogares por tipo de vivienda
+r$v1_i <- ifelse(r$tipo_vivienda == "apartamento",1,0)
+r$v1_ii <- ifelse(r$tipo_vivienda == "casa",1,0)
+r$v1_iii <- ifelse(r$tipo_vivienda == "habitacion_cuarto_pieza_en_otro_tipo_de_estructura__parqueaderos__depositos__bodegas__iglesias__colegios__fabricas__cuarto_para_portero_o_celador_en_un_edificio_de_apartamentos_",1,0)
+r$v1_iv <- ifelse(r$tipo_vivienda == "habitacion_cuarto_pieza_en_un_inquilinato",1,0)
+r$v1_v <- ifelse(r$tipo_vivienda == "situacion_de_calle_con_espacio_para_alojarse__carpa__vagon__embarcacion__cueva__refugio_natural__etc__",1,0)
+r$v1_vi <- ifelse(r$tipo_vivienda == "situacion_de_calle_sin_espacio_para_alojarse",1,0)
+r$v1_vii <- ifelse(r$tipo_vivienda == "vivienda_improvisada__construcciones_informales_con_materiales_menos_durables__cambuches__etc__",1,0)
+
+
+# % de hogares que declaran tener los siguentes servicios en su vivienda
+r$v2_i <- ifelse(r$servicios_acueducto == "si", 1,0)
+r$v2_ii <- ifelse(r$servicios_energia_electrica == "si", 1,0)
+r$v2_iii <- ifelse(r$servicios_gas == "si", 1,0)
+r$v2_iv <- ifelse(r$servicios_alcantarillado == "si", 1,0)
+r$v2_v <- ifelse(r$servicios_recoleccion_basura == "si", 1,0)
+r$v2_vi <- ifelse(r$servicios_acueducto == "si", 1,0)
+
+
+# % de hogares que reportan que el agua del acueducto llega las 24 horas del dia durante los siete dias de la semana
+r$v3 <- ifelse(r$acueducto_24h == "si", 1,0)
+
+
+# % de hogares en los que todos los miembros del hogar duermen en la misma habitacion
+r$v4 <- ifelse(r$nr_cuartos_duermen == 1 & r$nr_personas_familia != 0, 1,0)
+
+
+# % de hogares en los que hay mas de 2 personas por habitacion
+r$personas_por_habitacion <- r$nr_personas_familia / as.numeric(as.character(r$nr_cuartos_total))
+r$v5 <- ifelse(r$personas_por_habitacion > 2,1,0)
+
+
+# % de hogares que utilizan servicios de saneamiento mejorados
+r$v6 <- ifelse(r$tipo_servicio_sanitario %in% c("inodoro_conectado_a_alcantarillado", "inodoro_conectado_a_pozo_septico"),1,0)
+
+
+# % de hogares con fuentes de agua mejoradas
+r$v7 <- ifelse(r$fuente_agua %in% c("aguas_lluvias", "de_pozo_sin_bomba__aljibe__jaguey_o_barreno", "rio__quebrada__nacimiento_o_manantial"),0,1)
+
+
+# % de hogares que declaran que cocinan en una habitacion que solo se utiliza para cocinar
+r$v8 <- ifelse(r$lugar_preparacion_alimentos == "en_un_cuarto_usado_solo_para_cocinar",1,0)
+
+
+# % de hogares por tipo de energia o combustible con que concinan en su hogar
+r$v9_i <- ifelse(r$tipo_energia_cocinar == "electricidad",1,0)
+r$v9_ii <- ifelse(r$tipo_energia_cocinar == "gas_natural_conectado_a_red_publica",1,0)
+r$v9_iii <- ifelse(r$tipo_energia_cocinar == "gas_propano_en_cilindro_o_pipeta",1,0)
+r$v9_iv <- ifelse(r$tipo_energia_cocinar == "lena__madera_o_carbon_de_lena",1,0)
+r$v9_v <- ifelse(r$tipo_energia_cocinar == "petroleo__gasolina__kerosene__alcohol",1,0)
+
+
+# % de hogares por sexo de la persona que tiene el titulo de propriedad de la vivienda
+r$v9_i <- ifelse(r$sexo_titulo_propiedad == "hombre",1,0)
+r$v9_ii <- ifelse(r$sexo_titulo_propiedad == "mujer",1,0)
+r$v9_iii <- ifelse(r$sexo_titulo_propiedad == "ambos__mujer_y_hombre_",1,0)
+
+
+# % de hogares sin telefono movil
+r$v11 <- ifelse(r$bienes_celular == "si",1,0)
+
+
+# % de hogares que declaran que la tierra o arena es el material principal de los pisos de la vivienda
+r$v12 <- ifelse(r$material_pisos == "tierra__arena",1,0)
+
+
+# % de hogares que declaran que la lata u otros materiales improvisados son el material principal de sus paredes
+r$v13 <- ifelse(r$material_paredes_exteriores %in% c("zinc__tela__carton__latas__desechos__plastico", "cana__esterilla__otro_tipo_de_material_vegetal"),1,0)
+
+
+# % de hogares con 3 personas por domitorio
+r$personas_por_dormitorio <- r$nr_personas_familia / as.numeric(as.character(r$nr_cuartos_duermen))
+r$v14 <- ifelse(r$personas_por_dormitorio == 3,1,0)
+
+
+# % de hogares con 4 personas o mas por dormitorio
+r$v15 <- ifelse(r$personas_por_dormitorio >= 4,1,0)
+
+
+# % de hogares que declaran que la fuente principal de agua potable es el grifo publico o compartido, el pozo, el rio o el agua lluvia
+r$v16 <- ifelse(r$fuente_agua %in% c("aguas_lluvias", "de_pozo_sin_bomba__aljibe__jaguey_o_barreno", "rio__quebrada__nacimiento_o_manantial", "de_pila_publica", "de_pozo_con_bomba"),0,1)
+
+
+# % de hogares que declaran la deificacion al aire libre o los espacios publicos como su tipo de instalacion de saneamiento
+
+
+# % de hogares que declaran compartir su instalacion de saneamiento con otros hogares
+r$v18 <- ifelse(r$servicio_sanitario_compartido == "compartido_con_personas_de_otros_hogares_o_grupos_de_viaje",1,0)
+
+
+# % de hogares que declaran que el retrete privado no conectado es su instalacion de saneamiento
+
+
+
+###############################################################
+# NUTRICION
+###############################################################
+
+
+return(r)
+}
 

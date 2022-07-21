@@ -7,16 +7,16 @@ pretty.output <- function(summary, independent.var.value, analysisplan, cluster_
     analplan_subset <- analysisplan[which(analysisplan$independent.variable == independent.var),]
   }
   vars <- unique(subset$dependent.var)
-  districts <- unique(subset$repeat.var.value)
+  departamentos <- unique(subset$repeat.var.value)
   start <- ifelse(camp, 1, 19)
-  df <- data.frame(governorate = lookup_table$filter[start:nrow(lookup_table)][match(districts, lookup_table$name[start:nrow(lookup_table)])],  
-                   district = districts, stringsAsFactors = F)
-  df <- df[with(df, order(governorate, district)),]
+  df <- data.frame(region = lookup_table$filter[start:nrow(lookup_table)][match(departamentos, lookup_table$name[start:nrow(lookup_table)])],  
+                   departamento = departamentos, stringsAsFactors = F)
+  df <- df[with(df, order(region, departamento)),]
   for(i in 1:length(vars)){
     var_result <- subset[which(subset$dependent.var == vars[i]),]
-    df[,vars[i]] <- var_result[match(df$district, var_result$repeat.var.value), "numbers"]
-    df[,sprintf("%s_min", vars[i])] <- var_result[match(df$district, var_result$repeat.var.value), "min"]
-    df[,sprintf("%s_max", vars[i])] <- var_result[match(df$district, var_result$repeat.var.value), "max"]
+    df[,vars[i]] <- var_result[match(df$departamento, var_result$repeat.var.value), "numbers"]
+    df[,sprintf("%s_min", vars[i])] <- var_result[match(df$departamento, var_result$repeat.var.value), "min"]
+    df[,sprintf("%s_max", vars[i])] <- var_result[match(df$departamento, var_result$repeat.var.value), "max"]
   }
   extra_heading <- data.frame(t(vars), stringsAsFactors = F)
   colnames(extra_heading) <- vars
@@ -29,8 +29,8 @@ pretty.output <- function(summary, independent.var.value, analysisplan, cluster_
   }
   df <- rbind.fill(df, extra_heading)
   df <- df[c((nrow(df)-(nrow(extra_heading) - 1)):nrow(df),1:(nrow(df)-nrow(extra_heading))),]
-  df$district <- lookup_table$english[match(df$district, lookup_table$name)]
-  if(!camp){df$governorate <- lookup_table$english[match(df$governorate, lookup_table$name)]}
+  df$departamento <- lookup_table$english[match(df$departamento, lookup_table$name)]
+  if(!camp){df$region <- lookup_table$english[match(df$region, lookup_table$name)]}
   df[1:nrow(extra_heading), which(is.na(df[1,]))] <- ""
   df
 }

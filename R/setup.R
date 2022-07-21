@@ -60,9 +60,16 @@ devtools::install_github(
   build_vignettes = TRUE
 )
 
-#devtools::install_github(
-#  "mabafaba/hypegrammaR", 
-#  ref = "use_srvyr", 
-#  build_vignettes = TRUE)
+devtools::install_github(
+  "ellieallien/hypegrammaR", 
+  ref = "master", 
+  build_vignettes = TRUE
+)
+
+
+devtools::install_github(
+  "mabafaba/hypegrammaR", 
+  ref = "use_srvyr", 
+  build_vignettes = TRUE)
 
 weighting_fun_from_samplingframe(samplinframe)

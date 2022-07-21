@@ -50,6 +50,12 @@ response$region <- case_when(response$departamento == "bogota_dc" |
                                   response$departamento == "narino" ~ "pacifica",
                                 )
 
+response <-  response[c(which(!startsWith(names(response), "P1")))]  
+response <-  response[c(which(!startsWith(names(response), "P9")))]  
+#response <-  response[c(which(!startsWith(names(response), "ind")))]  
+response <-  response[c(which(!startsWith(names(response), "P8")))]  
+response <-  response[c(which(!startsWith(names(response), "V_")))]  
+response <-  response[c(which(!startsWith(names(response), "CONTINUAR_")))]  
 
 
 #response <- response[moveme(names(response), "governorate_gaza before governorate_wb")]
