@@ -69,29 +69,17 @@ response_with_composites <- recoding_preliminary(response, loop)
 #DISAGGREGATE MALE AND FEMALE HEADED HHs
 #female_headed <- response_with_composites[which(response_with_composites$X_uuid %in% loop$X_uuid[which(loop$sex == "female" & loop$relationship == "head")]),]
 #male_headed <- response_with_composites[which(response_with_composites$X_uuid %in% loop$X_uuid[which(loop$sex == "male" & loop$relationship == "head")]),]
-#DISAGGREGATED HH WITH DISABILITY AND THOSE THAT DON'T
-#response_with_composites <- count_difficulty_level(response_with_composites)
-#response_with_composites_disab <- subset(response_with_composites, response_with_composites$lot_diff > 0 | 
-#                                          response_with_composites$cannot_diff > 0)
-#response_with_composites_nodisab <- subset(response_with_composites, response_with_composites$lot_diff == 0 & 
-#                                          response_with_composites$cannot_diff == 0)
 
-#response_with_composites <- read.csv("Input/datasets/gaggihallo.csv")
+
 #LOAD ANALYSISPLAN
-#write.csv(response_with_composites, "Input/datasets/arschgaggi.csv")
-#response_with_composites <- read.csv("Input/datasets/arschgaggi.csv", sep = ";")
-
 dap_name <- "preliminary"
 analysisplan <- read.csv(sprintf("input/dap/dap_%s.csv",dap_name), stringsAsFactors = F, sep = ";")
 #analysisplan$independent.variable <-  "female_headed"
 
 
-#analysisplan$repeat.for.variable <- "pop_group"
-#response_with_composites$one <- "one"
-
 #AGGREGATE ACROSS DISTRICTS OR/AND POPULATION GROUPS
 #analysisplan <- analysisplan_nationwide(analysisplan)
-analysisplan <- analysisplan_pop_group_aggregated(analysisplan)
+#analysisplan <- analysisplan_pop_group_aggregated(analysisplan)
 #analysisplan$hypothesis.type <- "group_difference"
 response_with_composites <- filter(response_with_composites, 
                   pop_group != "pendular" &

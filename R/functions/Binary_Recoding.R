@@ -2,6 +2,8 @@
 recoding_preliminary <- function(r, loop) {
 
 r=response
+r[r==99]<-NA
+
 loop_05 <- loop[which(loop$edad < 5), ]
 loop_512 <- loop[which(loop$edad <= 12 & loop$edad >= 5), ]
 
@@ -11,6 +13,7 @@ loop_512 <- loop[which(loop$edad <= 12 & loop$edad >= 5), ]
 # % de hogares por sexo del jefe del hogar
 r$d1_1 <- ifelse(r$sexo_jh == "hombre", 1,0)
 r$d1_2 <- ifelse(r$sexo_jh == "mujer", 1,0)
+r$d1_3 <- ifelse(r$sexo_jh == "otro__cual_",1,0)
 
 
 # Promedio miembros del hogar
@@ -54,7 +57,7 @@ r$d8 <- ifelse(r$enfermedad_cronica_jh == "si", 1, 0)
 r$d9 <- ifelse(r$enfermedad_mental_jh == "si", 1, 0)
 
 
-# % de hogares en los que el encuestador se identifica como afrodescendiente
+# % de hogares por pertenencia étnica del encuestado
 r$d10_i <- ifelse(r$ind1_pertenencia_etnica == "afrodescendiente__negro__mulato_", 1, 0)
 r$d10_ii <- ifelse(r$ind1_pertenencia_etnica == "indigena", 1, 0)
 r$d10_iii <- ifelse(r$ind1_pertenencia_etnica == "gitano_rrom", 1, 0)
@@ -70,7 +73,6 @@ r$d11 <- ifelse(r$ind1_genero == "transgenero" |
 
 
 # % de hogares por rango de edad del jefe 
-r$d12 <- ifelse(r$ind1_pertenencia_etnica == "raizal", 1, 0)
 
 
 
@@ -124,6 +126,41 @@ r$sa3_iii <- ifelse(r$sa1_borderline == 1, 1,0)
 r$sa3_iv <- ifelse(r$sa1_poor == 1, 1,0)
 
 
+# cuota media del gasto en alimentacion (en % del gasto total)
+r$exp_food <- as.numeric(apply(r[,c("gastos_cereales", "gastos_tuberculos", "gastos_legumbres", "gastos_vegetales",
+                                    "gastos_frutas", "gastos_carne", "gastos_pescado", "gastos_huevos", "gastos_aceite",
+                                    "gastos_leche", "gastos_azucar", "gastos_condimentos", "gastos_bebidas_non_alcoholicas",
+                                    "gastos_comida_fuera_casa", "gastos_agua_beber")], 
+                               1, sum))
+
+r$exp_nonfood_30d <- as.numeric(apply(r[,c("gastos_renta", "gastos_electricidad", "gastos_basura", "gastos_higiene", 
+                                  "gastos_transporte", "gastos_comunicacion", "gastos_gasolina", "gastos_otros")], 
+                             1, sum))
+
+r$exp_nonfood_6m <- as.numeric(apply(r[,c("gastos_medicos", "gastos_vestimenta", "gastos_educacion", "gastos_deudas", 
+                                         "gastos_insumos", "gastos_construccion", "gastos_seguros", "gastos_textiles")], 
+                                    1, sum))
+
+
+r$exp_nonfood <- r$exp_nonfood_30d + (r$exp_nonfood_6m / 6)
+r$exp_total <- r$exp_nonfood + r$exp_food
+
+r$sa4 <- r$exp_food / r$exp_total
+
+
+# % de hogares por puntaje vulnerabilidad economica de CARI
+r <- r %>% mutate(sa5 = case_when(
+  r$sa4 < 0.5 ~ 1,
+  r$sa4 >= 0.5 & r$sa4 < 0.65 ~ 2,
+  r$sa4 >= 0.65 & r$sa4 < 0.75 ~ 3,
+  r$sa4 >= 0.75 ~ 4
+))
+r$sa5_i <- ifelse(r$sa5 == 1, 1,0)
+r$sa5_ii <- ifelse(r$sa5 == 2, 1,0)
+r$sa5_iii <- ifelse(r$sa5 == 3, 1,0)
+r$sa5_iv <- ifelse(r$sa5 == 4, 1,0)
+
+
 # % de hogares que recurren a estrategias de stress/crisis/emergency para hacer frente a la falta de alimentos o de dinero para comprarlos
 r$stress <-
   ifelse(
@@ -161,11 +198,30 @@ r$sa6_emergency <- ifelse(r$emergency == 1, 1,0)
 r$sa7_i <- ifelse(r$sa6_crisis == 0 & r$sa6_emergency == 0 & r$sa6_stress == 0, 1,0)
 r$sa7_ii <- ifelse(r$sa6_crisis == 0 & r$sa6_emergency == 0 & r$sa6_stress == 1, 1,0)
 r$sa7_iii <- ifelse(r$sa6_crisis == 1 & r$sa6_emergency == 0, 1,0)
-r$sa7_vi <- ifelse(r$sa6_emergency == 0, 1,0)
+r$sa7_iv <- ifelse(r$sa6_emergency == 0, 1,0)
 
 
 
 # % de hogares por situacion de seguridad alimentaria segun la metodologia del CARI
+r <- r %>% mutate(fcs_cari = case_when(
+  r$sa1_poor == 1 ~ 4,
+  r$sa1_borderline == 1 ~ 3,
+  r$sa1_acceptable == 1 ~ 1
+))
+r <- r %>% mutate(lcs_cari = case_when(
+  r$sa7_i == 1 ~ 1,
+  r$sa7_ii == 1 ~ 2,
+  r$sa7_iii == 1 ~ 3,
+  r$sa7_iv == 1 ~ 4
+))
+r$fes_cari <- r$sa5
+
+r$cari <- as.numeric(r$fcs_cari * 0.5) + as.numeric(r$lcs_cari * 0.25) + as.numeric(r$fes_cari * 0.25)
+r$sa8_sa <- ifelse(r$cari < 1.5,1,0)
+r$sa8_sam <- ifelse(r$cari >= 1.5 & r$cari < 2.5,1,0)
+r$sa8_iam <- ifelse(r$cari >= 2.5 & r$cari < 3.5,1,0)
+r$sa8_ias <- ifelse(r$cari >= 3.5,1,0)
+
 
 
 # % de hogares que han comido menos de 3 veces el dia anterior a la recogida de datos
@@ -175,8 +231,6 @@ r$sa9 <- ifelse(r$nr_comidas_7d != "3_comidas_o_mas",1,0)
 # % de hogares que han comido menos de 3 veces el dia anterior de la recogida de datos
 r$sa10 <- ifelse(r$nr_comidas_ayer != "3_comidas_o_mas",1,0)
 
-
-# % de hogares segun la Household Dietary Diversity Scale
 
 
 
@@ -211,8 +265,19 @@ r$so3 <- r$ingreso_pp
 
 
 # % de hogares pobres (LP-DANE)
+r <- r %>% mutate(so4 = case_when(
+  r$ingreso_pp < 396182 & r$urbano_rural == "urbano" ~ 1,
+  r$ingreso_pp < 228725 & r$urbano_rural == "rural" ~ 1,
+  TRUE ~ 0
+))
+
 
 # % de hogares en pobreza extrema (LPE-DANE)
+r <- r %>% mutate(so5 = case_when(
+  r$ingreso_pp < 178906 & r$urbano_rural == "urbano" ~ 1,
+  r$ingreso_pp < 125291 & r$urbano_rural == "rural" ~ 1,
+  TRUE ~ 0
+))
 
 
 # % de hogares que declaran tener una deuda en el momento de la recogida de datos
@@ -250,7 +315,20 @@ r$so10_v <- ifelse(r$razon_cambio_ingresos == "dejo_de_recibir_la_asistencia_del
 r$so10_vi <- ifelse(r$razon_cambio_ingresos == "los_salarios_se_han_reducido",1,0)
 
 
-# cuota media del gasto en gastos medicos o cuidado en la salud (en % del gasto total)
+
+# cuota media del gasto en renta (en % del gasto total)
+r$so11 <- as.numeric(r$gastos_renta / 6) / as.numeric(r$exp_total)
+
+# cuota media del gasto en gastos medicos o cuidado de la salud (en % del gasto total)
+r$so12 <- as.numeric(r$gastos_medicos / 6) / as.numeric(r$exp_total)
+
+# cuota media del gasto en educacion (en % del gasto total)
+r$so13 <- as.numeric(r$gastos_educacion / 6) / as.numeric(r$exp_total)
+
+# cuota media del gasto en gastos pago de deudas (en % del gasto total)
+r$so14 <- as.numeric(r$gastos_deudas / 6) / as.numeric(r$exp_total)
+
+
 
 # % de hogares que declaran haber ahorrado dinero en los ultimos 6 meses
 r$so15 <- ifelse(r$ahorrado_dinero == "si",1,0)
@@ -409,7 +487,7 @@ r$v10_iii <- ifelse(r$sexo_titulo_propiedad == "ambos__mujer_y_hombre_",1,0)
 
 
 # % de hogares sin telefono movil
-r$v11 <- ifelse(r$bienes_celular == "si",1,0)
+r$v11 <- ifelse(r$bienes_celular == "no",1,0)
 
 
 # % de hogares que declaran que la tierra o arena es el material principal de los pisos de la vivienda
