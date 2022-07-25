@@ -73,11 +73,40 @@ r$d11 <- ifelse(r$ind1_genero == "transgenero" |
 
 
 # % de hogares por rango de edad del jefe 
+loop_jefe <- loop[which(loop$parentesco == "jefe_del_hogar"), ]
 
+r$d12_i <-
+  ifelse(loop_jefe$edad[match(r$registro, loop_jefe$`ï..registro`)] <= 18 ,
+         1,
+         0)
+r$d12_ii <-
+  ifelse(loop_jefe$edad[match(r$registro, loop_jefe$`ï..registro`)] > 18 & 
+           loop_jefe$edad[match(r$registro, loop_jefe$`ï..registro`)] < 65,
+         1,
+         0)
+r$d12_iii <-
+  ifelse(loop_jefe$edad[match(r$registro, loop_jefe$`ï..registro`)] >= 65,
+         1,
+         0)
 
 
 # % de hogares monoparental
+r$d13 <-
+  ifelse(loop$parentesco[match(r$registro, loop$`ï..registro`)] == "hijo_a__del_jefe_del_hogar" &
+           r$estado_civil_jh %in% c("esta_separado_a__o_divorciado_a_", "esta_soltero_a_", "esta_viudo_a_", "vive_en_union_libre"), 1, 0)
 
+
+
+# % de hogares por rango de dependency ratio
+
+
+# % de hogares en los que al menos un nino en edad escolar no asiste a la escuela
+
+
+# % de hogares en los que al menos un nino que asiste a la escuela y no se beneficia del PAE
+r$ae2 <- ifelse(as.numeric(as.character(r$nr_escuela_colegio)) > as.numeric(as.character(r$nr_PAE)),1,0)
+r$ae2 <- ifelse(as.numeric(as.character(r$nr_escuela_colegio)) == 0,0,
+                r$ae2)
 
 
 # % de hogares por rangos de tamano del hogar 
@@ -516,6 +545,12 @@ r$v16 <- ifelse(r$servicio_sanitario_compartido == "compartido_con_personas_de_o
 ###############################################################
 # NUTRICION
 ###############################################################
+#% de ninos de 0 a 23 meses que han recibido leche materna el dia anterior a la recogida de datos
+loop_nutri_ninos023$n1 <- ifelse(loop_nutri_ninos023$recibio_leche_materna_ayer == "si", 1,0)
+
+#% de ninos de 0 a 23 meses que han comido menos de tres veces el dia anterior a la recogida de datos
+loop_nutri_ninos023$n2 <- ifelse(loop_nutri_ninos023$nr_alimentos_solidos_ayer %in% c("ninguna", "una_vez", "dos_veces"), 1,0)
+
 
 
 return(r)

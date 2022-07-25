@@ -31,6 +31,18 @@ loop <- read.csv("Input/datasets/dirty/individual_efsa_all_data_2022-07-18.csv",
                  stringsAsFactors=F, check.names=T,
                  na.strings = c("", " ", "NA", "#N/A", "N/A"))
 
+loop_nutri_ninos023 <- read.csv("Input/datasets/dirty/ninos023_nutritional_data_2022-07-22.csv", sep = ";",
+                 stringsAsFactors=F, check.names=T,
+                 na.strings = c("", " ", "NA", "#N/A", "N/A"))
+loop_nutri_ninos2459 <- read.csv("Input/datasets/dirty/ninos2459_nutritional_data_2022-07-22.csv", sep = ";",
+                                stringsAsFactors=F, check.names=T,
+                                na.strings = c("", " ", "NA", "#N/A", "N/A"))
+loop_nutri_embarazos <- read.csv("Input/datasets/dirty/embarazos_nutritional_data_2022-07-22.csv", sep = ";",
+                                stringsAsFactors=F, check.names=T,
+                                na.strings = c("", " ", "NA", "#N/A", "N/A"))
+loop_nutri_mayores <- read.csv("Input/datasets/dirty/mayores_nutritional_data_2022-07-22.csv", sep = ";",
+                                stringsAsFactors=F, check.names=T,
+                                na.strings = c("", " ", "NA", "#N/A", "N/A"))
 #names(response)[names(response) == 'ï..X_uuid'] <- "X_uuid"
 #names(loop)[names(loop) == "ï..X_uuid"] <- "X_submission__uuid"
 

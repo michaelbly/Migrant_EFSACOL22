@@ -116,8 +116,9 @@ write.csv(summary, sprintf("output/raw_results/raw_results_%s.csv", name), row.n
 summary <- read.csv(sprintf("output/raw_results/raw_results_%s.csv", name), stringsAsFactors = F)
 summary <- correct.zeroes(summary)
 summary <- summary %>% filter(dependent.var.value %in% c(NA,1))
-#summary$max <- ifelse(summary$max > 1, 1, summary$max)
-#summary$min <- ifelse(summary$min < 0, 0, summary$min)
+summary$max <- ifelse(summary$max > 1, 1, summary$max)
+summary$min <- ifelse(summary$min < 0, 0, summary$min)
+
 
 write.csv(summary, sprintf("output/raw_results/raw_results_%s_filtered.csv", name), row.names=F)
 if(all(is.na(summary$independent.var.value))){summary$independent.var.value <- "all"}
