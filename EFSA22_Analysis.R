@@ -50,16 +50,22 @@ R.version
   #'     3.6. throw error if any don't match
 
   
+# CALCULATE STRATA WEIGHTS
+strata_weight_fun <- map_to_weighting(sampling.frame = samplingframe,
+                                      sampling.frame.population.column = "population",
+                                      sampling.frame.stratum.column = "stratum",
+                                      data.stratum.column = "strata",
+                                      data = response)
+
+# weight_fun <- combine_weighting_functions(strata_weight_fun, clusters_weight_fun)
+weight_fun <-strata_weight_fun
+
+response$weights<- weight_fun(response)
 
 #CREATE NEW FUNCTION FOR WEIGHTING
-#response <- response %>% drop_na(weights)
-#response$weights <- ifelse(response$strata == "camps_wb", 1, 
-#                           response$weights)
-
-response$weights <- 1
- weight_fun<-function(df){
+weight_fun<-function(df){
   df$weights
- }
+}
 
 
 #RECODING OF INDICATORS
@@ -74,11 +80,12 @@ response_with_composites <- recoding_preliminary(response, loop)
 #LOAD ANALYSISPLAN
 dap_name <- "preliminary"
 analysisplan <- read.csv(sprintf("input/dap/dap_%s.csv",dap_name), stringsAsFactors = F, sep = ";")
-#analysisplan$independent.variable <-  "female_headed"
+#analysisplan$independent.variable <-  "pop_group"
+#analysisplan$repeat.for.variable <- "sexo_jh"
 
 
 #AGGREGATE ACROSS DISTRICTS OR/AND POPULATION GROUPS
-#analysisplan <- analysisplan_nationwide(analysisplan)
+analysisplan <- analysisplan_nationwide(analysisplan)
 #analysisplan <- analysisplan_pop_group_aggregated(analysisplan)
 #analysisplan$hypothesis.type <- "group_difference"
 response_with_composites <- filter(response_with_composites, 
@@ -97,11 +104,11 @@ response_with_composites <- filter(response_with_composites,
 
 
 result <- from_analysisplan_map_to_output(response_with_composites, analysisplan = analysisplan,
-                                          weighting = NULL, cluster_variable_name = NULL,
+                                          weighting = weight_fun, cluster_variable_name = NULL,
                                           questionnaire = NULL, confidence_level = 0.95)
 
 
-name <- "EFSA_Preliminary"
+name <- "EFSA_Preliminary_nacional"
 saveRDS(result,paste(sprintf("output/RDS/result_%s.RDS", name)))
 
 summary <- bind_rows(lapply(result[[1]], function(x){x$summary.statistic}))
