@@ -122,7 +122,95 @@ r$n18 <- r$hdds
 
 
 #% de niños de 6 a 23 meses de edad que consumieron alimentos y bebidas de al menos cinco de los ocho grupos de alimentos definidos durante el día anterior (MDD)
-r$mdd
+loop_nutri_ninos023$n19_i <- ifelse(grepl("leche_materna", loop_nutri_ninos023$consumo_ayer),1,0)
+loop_nutri_ninos023$n19_ii <- ifelse(grepl("arroz__pasta__cereales", loop_nutri_ninos023$consumo_ayer),1,0)
+loop_nutri_ninos023$n19_iii <- ifelse(grepl("carne_de_res__pollo__pescado", loop_nutri_ninos023$consumo_ayer),1,0)
+loop_nutri_ninos023$n19_iv <- ifelse(grepl("papa__yuca__platano", loop_nutri_ninos023$consumo_ayer),1,0)
+loop_nutri_ninos023$n19_v <- ifelse(grepl("huevos", loop_nutri_ninos023$consumo_ayer),1,0)
+loop_nutri_ninos023$n19_vi <- ifelse(grepl("tomate__mango", loop_nutri_ninos023$consumo_ayer),1,0)
+loop_nutri_ninos023$n19_vii <- ifelse(grepl("otras_frutas", loop_nutri_ninos023$consumo_ayer),1,0)
+
+loop_nutri_ninos023$mdd <- apply(loop_nutri_ninos023[,c("n19_i", "n19_ii", "n19_iii","n19_iv","n19_v",
+                     "n19_vi","n19_vii")], 1, sum)
+loop_nutri_ninos023$n19 <- ifelse(loop_nutri_ninos023$mdd >= 5,1,0)
+
+
+#% de niños de 6 a 23 meses de edad que consumieron alimentos sólidos, semisólidos o blandos (pero también incluye la alimentación con leche para los niños no amamantados) al menos el número mínimo de veces durante el día anterior. 
+loop_nutri_ninos023 <- loop_nutri_ninos023 %>% mutate(n20 = case_when(
+  loop_nutri_ninos023$edad <= 8 & loop_nutri_ninos023$nr_alimentos_solidos_ayer != "ninguna" & 
+    loop_nutri_ninos023$nr_alimentos_solidos_ayer != "una_vez" ~ 1,
+  loop_nutri_ninos023$edad > 8 & loop_nutri_ninos023$edad <= 23 & loop_nutri_ninos023$nr_alimentos_solidos_ayer != "ninguna" & 
+    loop_nutri_ninos023$nr_alimentos_solidos_ayer != "una_vez" & loop_nutri_ninos023$nr_alimentos_solidos_ayer != "dos_veces" ~ 1,
+  TRUE ~ 0
+))
+
+
+#% de niños de 6 a 23 meses de edad que consumieron una dieta mínima dieta aceptable durante el día anterior 
+loop_nutri_ninos023$n21 <- ifelse(loop_nutri_ninos023$n19 == 1 & loop_nutri_ninos023$n20 == 1, 1,0)
+
+
+#% de niños de 6 a 23 meses de edad que consumieron huevos y/o alimentos de carne durante el día anterior.
+loop_nutri_ninos023$n22 <- ifelse(loop_nutri_ninos023$n19_iii == 1 | loop_nutri_ninos023$n19_v == 1,1,0)
+
+
+#% de niños de 6 a 23 meses de edad que no consumieron verduras o frutas durante el día anterior.
+loop_nutri_ninos023$n23 <- ifelse(loop_nutri_ninos023$n19_vi == 0 & loop_nutri_ninos023$n19_vii == 0,1,0)
+
+
+
+
+library(anthro)
+
+#######################################
+# calculate the z-scores for children 023
+names(loop_nutri_ninos023)
+registro_hh <- dplyr::select(loop, registro, sexo, nombre)
+loop_nutri_ninos023 <- merge(registro_hh, loop_nutri_ninos023, by.x = c("registro", "nombre"), all.y = T)
+loop_nutri_ninos023 <- loop_nutri_ninos023 %>% mutate(sexo = case_when(
+  loop_nutri_ninos023$sexo == "hombre" ~ "m",
+  loop_nutri_ninos023$sexo == "mujer" ~ "f",
+))
+loop_nutri_ninos023$peso_1 <- as.numeric(as.character(loop_nutri_ninos023$peso_1))
+loop_nutri_ninos023$talla_1 <- as.numeric(as.character(loop_nutri_ninos023$talla_1))
+loop_nutri_ninos023$measurement <- "h"
+
+growth_zscores023 <-  anthro_zscores(
+  sex = loop_nutri_ninos023$sexo,
+  age = loop_nutri_ninos023$edad,
+  is_age_in_month = TRUE,
+  weight = loop_nutri_ninos023$peso_1,
+  lenhei = loop_nutri_ninos023$talla_1
+)
+
+#select zlen (length for age), zwei (weight for age), zwfl (weight for length), zbmi (bmi for age)
+growth_zscores023 <- growth_zscores023[,c("zlen", "zwei", "zwfl", "zbmi")]
+loop_nutri_ninos023 <- cbind(loop_nutri_ninos023, growth_zscores)
+
+
+# % de niños menores de 5 años con retraso en el crecimiento (< -2 z-score)
+#extreme and moderate stunting
+loop_nutri_ninos023$n24_i <- ifelse(loop_nutri_ninos023$zlen < -2 & loop_nutri_ninos023$zlen >= -3,1,0)
+loop_nutri_ninos023$n24_ii <- ifelse(loop_nutri_ninos023$zlen < -3,1,0)
+
+  
+# % de niños menores de 5 años con peso inferior al normal (< -2  z-score)
+#severe and moderate underweight
+loop_nutri_ninos023$n25_i <- ifelse(loop_nutri_ninos023$zwei < -2 & loop_nutri_ninos023$zwei >= -3,1,0)
+loop_nutri_ninos023$n25_ii <- ifelse(loop_nutri_ninos023$zwei < -3,1,0)
+
+
+#% de niños menores de 5 años con emaciación (< -2 z-score)
+#severe wasting and moderate wasting
+loop_nutri_ninos023$n26_i <- ifelse(loop_nutri_ninos023$zwfl < -2 & loop_nutri_ninos023$zwfl >= -3,1,0)
+loop_nutri_ninos023$n26_ii <- ifelse(loop_nutri_ninos023$zwfl < -3,1,0)
+
+
+#% de niños menores de 5 años con sobrepeso (> +2 puntuación z)
+#overweight and obesity
+loop_nutri_ninos023$n27_i <- ifelse(loop_nutri_ninos023$zwfl <= 3 & loop_nutri_ninos023$zwfl > 2,1,0)
+loop_nutri_ninos023$n27_ii <- ifelse(loop_nutri_ninos023$zwfl > 3,1,0)
+
+
 
 
 
