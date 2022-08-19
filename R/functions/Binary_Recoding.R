@@ -3,6 +3,8 @@ recoding_preliminary <- function(r, loop) {
 
 r=response
 r[r==99]<-NA
+r[r=="_"]<-NA
+
 
 loop_05 <- loop[which(loop$edad < 5), ]
 loop_512 <- loop[which(loop$edad <= 12 & loop$edad >= 5), ]
@@ -16,8 +18,16 @@ r$d1_2 <- ifelse(r$sexo_jh == "mujer", 1,0)
 r$d1_3 <- ifelse(r$sexo_jh == "otro__cual_",1,0)
 
 
+# razón por la que una persona es considerada jefe de hogar (% de hogares) 
+r$d1_i <- ifelse(r$razon_jefatura_hogar == "cultural__asi_es_la_tradicion",1,0)
+r$d1_ii <- ifelse(r$razon_jefatura_hogar == "es_la_persona_que_aporta_la_mayor_parte_de_los_recursos",1,0)
+r$d1_iii <- ifelse(r$razon_jefatura_hogar == "es_la_persona_que_toma_las_decisiones",1,0)
+r$d1_vi <- ifelse(r$razon_jefatura_hogar == "no_hay_nadie_mas_con_quien_compartir_decisiones_o_gastos__jefatura_unica_por_parte_de_mujer_o_de_hombre_",1,0)
+r$d1_v <- ifelse(r$razon_jefatura_hogar == "toma_decisiones_y_aporta_la_mayor_parte_de_recursos",1,0)
+
+  
 # Promedio miembros del hogar
-r$d2 <- as.numeric(r$nr_personas_familia)
+r$d2 <- as.numeric(r$nr_personas_hogar)
 
 
 # % de hogares con al menos un miembro en estado de embarazo
@@ -76,24 +86,24 @@ r$d11 <- ifelse(r$ind1_genero == "transgenero" |
 loop_jefe <- loop[which(loop$parentesco == "jefe_del_hogar"), ]
 
 r$d12_i <-
-  ifelse(loop_jefe$edad[match(r$registro, loop_jefe$`ï..registro`)] <= 18 ,
+  ifelse(loop_jefe$edad[match(r$registro, loop_jefe$registro)] <= 18 ,
          1,
          0)
 r$d12_ii <-
-  ifelse(loop_jefe$edad[match(r$registro, loop_jefe$`ï..registro`)] > 18 & 
-           loop_jefe$edad[match(r$registro, loop_jefe$`ï..registro`)] < 65,
+  ifelse(loop_jefe$edad[match(r$registro, loop_jefe$`registro`)] > 18 & 
+           loop_jefe$edad[match(r$registro, loop_jefe$`registro`)] < 65,
          1,
          0)
 r$d12_iii <-
-  ifelse(loop_jefe$edad[match(r$registro, loop_jefe$`ï..registro`)] >= 65,
+  ifelse(loop_jefe$edad[match(r$registro, loop_jefe$`registro`)] >= 65,
          1,
          0)
 
 
 # % de hogares monoparental
 r$d13 <-
-  ifelse(loop$parentesco[match(r$registro, loop$`ï..registro`)] == "hijo_a__del_jefe_del_hogar" &
-           r$estado_civil_jh %in% c("esta_separado_a__o_divorciado_a_", "esta_soltero_a_", "esta_viudo_a_", "vive_en_union_libre"), 1, 0)
+  ifelse(loop$parentesco[match(r$registro, loop$`registro`)] == "hijo_a__del_jefe_del_hogar" &
+           r$estado_civil_jh %in% c("esta_separado_a__o_divorciado_a_", "esta_soltero_a_", "esta_viudo_a_"), 1, 0)
 
 
 
@@ -110,12 +120,12 @@ r$ae2 <- ifelse(as.numeric(as.character(r$nr_escuela_colegio)) == 0,0,
 
 
 # % de hogares por rangos de tamano del hogar 
-r$d15_i <- ifelse(r$nr_personas_familia == 1, 1,0)
-r$d15_ii <- ifelse(r$nr_personas_familia > 1 & r$nr_personas_familia <= 2, 1,0)
-r$d15_iii <- ifelse(r$nr_personas_familia > 2 & r$nr_personas_familia <= 3, 1,0)
-r$d15_iv <- ifelse(r$nr_personas_familia > 3 & r$nr_personas_familia <= 4, 1,0)
-r$d15_v <- ifelse(r$nr_personas_familia > 4 & r$nr_personas_familia <= 5, 1,0)
-r$d15_vi <- ifelse(r$nr_personas_familia > 5, 1,0)
+r$d15_i <- ifelse(r$nr_personas_hogar == 1, 1,0)
+r$d15_ii <- ifelse(r$nr_personas_hogar > 1 & r$nr_personas_hogar <= 2, 1,0)
+r$d15_iii <- ifelse(r$nr_personas_hogar > 2 & r$nr_personas_hogar <= 3, 1,0)
+r$d15_iv <- ifelse(r$nr_personas_hogar > 3 & r$nr_personas_hogar <= 4, 1,0)
+r$d15_v <- ifelse(r$nr_personas_hogar > 4 & r$nr_personas_hogar <= 5, 1,0)
+r$d15_vi <- ifelse(r$nr_personas_hogar > 5, 1,0)
 
 
 
@@ -150,7 +160,7 @@ r$sa2_iii <- ifelse(r$csi_score > 18, 1,0)
 
 # % de hogares por FCS-CSI Ajuste
 r$sa3_i <- ifelse(r$sa1_acceptable == 1 & r$sa2_i == 1, 1,0)
-r$sa3_ii <- ifelse(r$sa1_acceptable == 1 & (r$sa2_i == 1 | r$sa2_ii == 1), 1,0)
+r$sa3_ii <- ifelse(r$sa1_acceptable == 1 & (r$sa2_ii == 1 | r$sa2_iii == 1), 1,0)
 r$sa3_iii <- ifelse(r$sa1_borderline == 1, 1,0)
 r$sa3_iv <- ifelse(r$sa1_poor == 1, 1,0)
 
@@ -160,32 +170,76 @@ r$exp_food <- as.numeric(apply(r[,c("gastos_cereales", "gastos_tuberculos", "gas
                                     "gastos_frutas", "gastos_carne", "gastos_pescado", "gastos_huevos", "gastos_aceite",
                                     "gastos_leche", "gastos_azucar", "gastos_condimentos", "gastos_bebidas_non_alcoholicas",
                                     "gastos_comida_fuera_casa", "gastos_agua_beber")], 
-                               1, sum))
+                               1, sum, na.rm = T))
+r$exp_food <- ifelse(as.numeric(apply(r[,c("gastos_cereales", "gastos_tuberculos", "gastos_legumbres", "gastos_vegetales",
+                                    "gastos_frutas", "gastos_carne", "gastos_pescado", "gastos_huevos", "gastos_aceite",
+                                    "gastos_leche", "gastos_azucar", "gastos_condimentos", "gastos_bebidas_non_alcoholicas",
+                                    "gastos_comida_fuera_casa", "gastos_agua_beber")], 
+                               1, function(x) sum(is.na(x)))) > 2,NA, r$exp_food)
+r$exp_food <- ifelse(r$pop_group %in% c("pendular", "transito"), r$gastos_alimentos_gv, 
+                     r$exp_food)
 
-r$exp_nonfood_30d <- as.numeric(apply(r[,c("gastos_renta", "gastos_electricidad", "gastos_basura", "gastos_higiene", 
+
+r$exp_nonfood_30d <- as.numeric(apply(r[,c("gastos_renta", "gastos_electricidad", "gastos_higiene", 
                                   "gastos_transporte", "gastos_comunicacion", "gastos_gasolina", "gastos_otros")], 
-                             1, sum))
+                             1, sum, na.rm = T))
+r$exp_nonfood_30d <- ifelse(as.numeric(apply(r[,c("gastos_renta", "gastos_electricidad", "gastos_higiene", 
+                                           "gastos_transporte", "gastos_comunicacion", "gastos_gasolina", "gastos_otros")], 
+                                      1, function(x) sum(is.na(x)))) > 2,NA, r$exp_nonfood_30d)
+
 
 r$exp_nonfood_6m <- as.numeric(apply(r[,c("gastos_medicos", "gastos_vestimenta", "gastos_educacion", "gastos_deudas", 
                                          "gastos_insumos", "gastos_construccion", "gastos_seguros", "gastos_textiles")], 
-                                    1, sum))
+                                    1, sum, na.rm = T))
+r$exp_nonfood_6m <- ifelse(as.numeric(apply(r[,c("gastos_medicos", "gastos_vestimenta", "gastos_educacion", "gastos_deudas", 
+                      "gastos_insumos", "gastos_construccion", "gastos_seguros", "gastos_textiles")], 
+                 1, function(x) sum(is.na(x)))) > 2,NA, r$exp_nonfood_6m)
 
 
 r$exp_nonfood <- r$exp_nonfood_30d + (r$exp_nonfood_6m / 6)
 r$exp_total <- r$exp_nonfood + r$exp_food
+r$exp_total <- ifelse(r$pop_group %in% c("pendular", "transito"), r$gastos_total_gv + r$gastos_alimentos_gv, 
+                     r$exp_total)
 
 r$sa4 <- r$exp_food / r$exp_total
+r$sa4 <- ifelse(r$pop_group %in% c("pendular", "transito"), 
+                (r$gastos_alimentos_gv / r$r$gastos_total_gv), 
+                 r$sa4)
+
+# promedio de gastos en alimentos por persona
+r$sa4_i_cop <- round(as.numeric(ifelse(r$pop_group %in% c("pendular", "transito"), 
+                  (r$gastos_alimentos_gv / r$nr_personas_hogar), 
+                  (r$exp_food / r$nr_personas_hogar))),0)
+r$sa4_i_usd <- round(as.numeric(r$sa4_i_cop / 4203),0)
+
+
+# promedio de gastos totales por persona
+r$sa4_ii_cop <- round(as.numeric(r$exp_total / r$nr_personas_hogar),0)
+r$sa4_ii_usd <- round(as.numeric(r$sa4_ii_cop / 4203),0)
 
 
 # % de hogares por puntaje vulnerabilidad economica de CARI
+#r <- r %>% mutate(sa5 = case_when(
+#  r$sa4 < 0.5 ~ 1,
+#  r$sa4 >= 0.5 & r$sa4 < 0.65 ~ 2,
+#  r$sa4 >= 0.65 & r$sa4 < 0.75 ~ 3,
+#  r$sa4 >= 0.75 ~ 4
+#))
+# % de hogares por vulnerabilidad economic gastos
+r$exp_pp <- r$exp_total / r$nr_personas_hogar
+r$exp_pp <- round(as.numeric(r$exp_pp),0)
+
 r <- r %>% mutate(sa5 = case_when(
-  r$sa4 < 0.5 ~ 1,
-  r$sa4 >= 0.5 & r$sa4 < 0.65 ~ 2,
-  r$sa4 >= 0.65 & r$sa4 < 0.75 ~ 3,
-  r$sa4 >= 0.75 ~ 4
-))
+  r$exp_pp > 396182 & r$urbano_rural == "urbano" ~ 1,
+  r$exp_pp > 228725 & r$urbano_rural == "rural" ~ 1,
+  
+  r$exp_pp < 396182 & r$exp_pp > 178906 & r$urbano_rural == "urbano" ~ 3,
+  r$exp_pp < 228725 & r$exp_pp > 125291 & r$urbano_rural == "rural" ~ 3,
+  
+  r$exp_pp < 178906 & r$urbano_rural == "urbano" ~ 4,
+  r$exp_pp < 125291 & r$urbano_rural == "rural" ~ 4))
+
 r$sa5_i <- ifelse(r$sa5 == 1, 1,0)
-r$sa5_ii <- ifelse(r$sa5 == 2, 1,0)
 r$sa5_iii <- ifelse(r$sa5 == 3, 1,0)
 r$sa5_iv <- ifelse(r$sa5 == 4, 1,0)
 
@@ -195,7 +249,8 @@ r$stress <-
   ifelse(
     r$lcs_comprar_credito %in% c("no__porque_ya_lo_habia_hecho_durante_los_ultimos_12_meses_y_no_podia_seguir_haciendolo", "si") |
       r$lcs_gastar_ahorros %in% c("no__porque_ya_lo_habia_hecho_durante_los_ultimos_12_meses_y_no_podia_seguir_haciendolo", "si") |
-      r$lcs_enviar_miembros_comer_familia %in% c("no__porque_ya_lo_habia_hecho_durante_los_ultimos_12_meses_y_no_podia_seguir_haciendolo", "si"), 
+      r$lcs_enviar_miembros_comer_familia %in% c("no__porque_ya_lo_habia_hecho_durante_los_ultimos_12_meses_y_no_podia_seguir_haciendolo", "si") |
+    r$lcs_vender_activos %in% c("no__porque_ya_lo_habia_hecho_durante_los_ultimos_12_meses_y_no_podia_seguir_haciendolo", "si"), 
     1,
     0  
   )
@@ -223,20 +278,34 @@ r$sa6_crisis <- ifelse(r$crisis == 1, 1,0)
 r$sa6_emergency <- ifelse(r$emergency == 1, 1,0)
 
 
+# % de hogares por estrategia
+r$sa6b_i <- ifelse(r$lcs_actividades_riesgo %in% c("no__porque_ya_lo_habia_hecho_durante_los_ultimos_12_meses_y_no_podia_seguir_haciendolo", "si"),1,0)
+r$sa6b_ii <- ifelse(r$lcs_vender_casa %in% c("no__porque_ya_lo_habia_hecho_durante_los_ultimos_12_meses_y_no_podia_seguir_haciendolo", "si"),1,0)
+r$sa6b_iii <- ifelse(r$lcs_pedir_ayuda %in% c("no__porque_ya_lo_habia_hecho_durante_los_ultimos_12_meses_y_no_podia_seguir_haciendolo", "si"),1,0)
+r$sa6b_iv <- ifelse(r$lcs_sacar_ninos_escuela %in% c("no__porque_ya_lo_habia_hecho_durante_los_ultimos_12_meses_y_no_podia_seguir_haciendolo", "si"),1,0)
+r$sa6b_v <- ifelse(r$lcs_reducir_gastos_salud_educacion %in% c("no__porque_ya_lo_habia_hecho_durante_los_ultimos_12_meses_y_no_podia_seguir_haciendolo", "si"),1,0)
+r$sa6b_vi <- ifelse(r$lcs_vender_activos_produccion %in% c("no__porque_ya_lo_habia_hecho_durante_los_ultimos_12_meses_y_no_podia_seguir_haciendolo", "si"),1,0)
+r$sa6b_vii <- ifelse(r$lcs_enviar_miembros_comer_familia %in% c("no__porque_ya_lo_habia_hecho_durante_los_ultimos_12_meses_y_no_podia_seguir_haciendolo", "si"),1,0)
+r$sa6b_viii <- ifelse(r$lcs_gastar_ahorros %in% c("no__porque_ya_lo_habia_hecho_durante_los_ultimos_12_meses_y_no_podia_seguir_haciendolo", "si"),1,0)
+r$sa6b_ix <- ifelse(r$lcs_comprar_credito %in% c("no__porque_ya_lo_habia_hecho_durante_los_ultimos_12_meses_y_no_podia_seguir_haciendolo", "si"),1,0)
+r$sa6b_x <- ifelse(r$lcs_vender_activos %in% c("no__porque_ya_lo_habia_hecho_durante_los_ultimos_12_meses_y_no_podia_seguir_haciendolo", "si"),1,0)
+
+
 # % de hogares por LCS para CARI
 r$sa7_i <- ifelse(r$sa6_crisis == 0 & r$sa6_emergency == 0 & r$sa6_stress == 0, 1,0)
 r$sa7_ii <- ifelse(r$sa6_crisis == 0 & r$sa6_emergency == 0 & r$sa6_stress == 1, 1,0)
 r$sa7_iii <- ifelse(r$sa6_crisis == 1 & r$sa6_emergency == 0, 1,0)
-r$sa7_iv <- ifelse(r$sa6_emergency == 0, 1,0)
+r$sa7_iv <- ifelse(r$sa6_emergency == 1, 1,0)
 
 
 
 # % de hogares por situacion de seguridad alimentaria segun la metodologia del CARI
-r <- r %>% mutate(fcs_cari = case_when(
-  r$sa1_poor == 1 ~ 4,
-  r$sa1_borderline == 1 ~ 3,
-  r$sa1_acceptable == 1 ~ 1
-))
+r <- r %>% mutate(fcs_ajuste_cari = case_when(
+  r$sa3_i == 1 ~ 1,
+  r$sa3_ii == 1 ~ 2,
+  r$sa3_iii == 1 ~ 3,
+  r$sa3_iv == 1 ~ 4))
+
 r <- r %>% mutate(lcs_cari = case_when(
   r$sa7_i == 1 ~ 1,
   r$sa7_ii == 1 ~ 2,
@@ -245,13 +314,13 @@ r <- r %>% mutate(lcs_cari = case_when(
 ))
 r$fes_cari <- r$sa5
 
-r$cari <- as.numeric(r$fcs_cari * 0.5) + as.numeric(r$lcs_cari * 0.25) + as.numeric(r$fes_cari * 0.25)
+r$cari <- as.numeric(r$fcs_ajuste_cari * 0.5) + as.numeric(r$lcs_cari * 0.25) + as.numeric(r$fes_cari * 0.25)
 r$sa8_sa <- ifelse(r$cari < 1.5,1,0)
 r$sa8_sam <- ifelse(r$cari >= 1.5 & r$cari < 2.5,1,0)
 r$sa8_iam <- ifelse(r$cari >= 2.5 & r$cari < 3.5,1,0)
 r$sa8_ias <- ifelse(r$cari >= 3.5,1,0)
 
-
+r$cari_insecurity <- ifelse(r$sa8_iam == 1 | r$sa8_iam == 1,1,0)
 
 # % de hogares que han comido menos de 3 veces el dia anterior a la recogida de datos
 r$sa9 <- ifelse(r$nr_comidas_7d != "3_comidas_o_mas",1,0)
@@ -287,10 +356,14 @@ r$so2_v <- ifelse(r$fuente_ingresos == "negocio_propio_independiente__formal_",1
 r$so2_vi <- ifelse(r$fuente_ingresos == "trabajo_asalariado_con_salario_regular_en_el_sector_publico_o_privado",1,0)
 r$so2_vii <- ifelse(r$fuente_ingresos == "trabajo_de_jornaleo_con_salario_irregular",1,0)
 r$so2_viii <- ifelse(r$fuente_ingresos == "trabajo_de_limpieza_de_cuidado_en_casa_de_otras_personas",1,0)
+r$so2_ix <- ifelse(r$fuente_ingresos == "remesas_de_migrantes_o_ayuda_de_familiares_amigos", 1,0)
+
 
 # ingresos medios mensuales por miembro del hogar
-r$ingreso_pp <- r$ingreso / r$nr_personas_familia
-r$so3 <- r$ingreso_pp
+r$ingreso_pp <- r$ingreso / r$nr_personas_hogar
+r$so3 <- round(as.numeric(r$ingreso_pp),0)
+r$so3_cop <- round(as.numeric(r$ingreso_pp),0)
+r$so3_usd <- round(as.numeric(r$so3_cop / 4206),0)
 
 
 # % de hogares pobres (LP-DANE)
@@ -346,7 +419,7 @@ r$so10_vi <- ifelse(r$razon_cambio_ingresos == "los_salarios_se_han_reducido",1,
 
 
 # cuota media del gasto en renta (en % del gasto total)
-r$so11 <- as.numeric(r$gastos_renta / 6) / as.numeric(r$exp_total)
+r$so11 <- as.numeric(r$gastos_renta) / as.numeric(r$exp_total)
 
 # cuota media del gasto en gastos medicos o cuidado de la salud (en % del gasto total)
 r$so12 <- as.numeric(r$gastos_medicos / 6) / as.numeric(r$exp_total)
@@ -367,6 +440,19 @@ r$so15 <- ifelse(r$ahorrado_dinero == "si",1,0)
 r$so16 <- as.numeric(r$monto_ahorrado)
 
 
+# % de hogares por fuente de credito para todas las deudas y prestamos
+r$so17_i <- ifelse(r$fuente_credito == "credito_de_almacen",1,0)
+r$so17_ii <- ifelse(r$fuente_credito == "familia_amigos_vecinos",1,0)
+r$so17_iii <- ifelse(r$fuente_credito == "prestamista__gota_a_gota_",1,0)
+r$so17_iv <- ifelse(r$fuente_credito == "tarjeta_de_credito",1,0)
+r$so17_v <- ifelse(r$fuente_credito == "banco__distinto_a_tarjeta_de_credito_",1,0)
+r$so17_vi <- ifelse(r$fuente_credito == "cooperativa",1,0)
+r$so17_vii <- ifelse(r$fuente_credito == "empresa_de_servicios_publicos",1,0)
+r$so17_viii <- ifelse(r$fuente_credito == "fiador__tendero",1,0)
+r$so17_ix <- ifelse(r$fuente_credito == "propietario_de_vivienda__retraso_en_el_alquiler_",1,0)
+
+
+
 ###############################################################
 # SITUACION MIGRATORIA
 ###############################################################
@@ -381,6 +467,12 @@ r$diff_dates = difftime(r$date_assessment, r$fecha_llegada, units = "days")
 r$m1_i <- ifelse(r$diff_dates <= 180, 1,0)
 r$m1_ii <- ifelse(r$diff_dates > 180 & r$diff_dates <= 360, 1,0)
 r$m1_iii <- ifelse(r$diff_dates > 360, 1,0)
+
+r <- r %>% mutate(tiempo_en_pais = case_when(
+  r$diff_dates <= 180 ~ "menos_6m",
+  r$diff_dates > 180 & r$diff_dates <= 360 ~ "6m-12m",
+  r$diff_dates > 360 & r$diff_dates <= 720 ~ "12m-24m",
+  r$diff_dates > 720 ~ "mas_24m"))
 
 
 # % de hogares por documento que posee el jefe del hogar
@@ -452,6 +544,15 @@ r$ah3 <- ifelse(r$asistencia_PMA == "si",1,0)
 r$ah4 <- ifelse(r$asistencia_familia == "si",1,0)
 
 
+# % de hogares que declaran haber recibido ayuda de su comunidad, familia o amigos para cubrir el costo de alimentos u otras necesidades en los ultimos 6 meses por tipo de familiares que han prestado la asistencia
+r$ah4_i <- ifelse(r$asistencia_familia_quien == "amigos",1,0)
+r$ah4_ii <- ifelse(r$asistencia_familia_quien == "familiares_que_viven_en_colombia",1,0)
+r$ah4_iii <- ifelse(r$asistencia_familia_quien == "familiares_que_viven_fuera_de_colombia",1,0)
+r$ah4_iv <- ifelse(r$asistencia_familia_quien == "iglesia",1,0)
+r$ah4_v <- ifelse(r$asistencia_familia_quien == "miembros_de_la_comunidad",1,0)
+
+
+
 
 ###############################################################
 # SITUACION DE LA VIVIENDA Y ACTIVOS DEL HOGAR
@@ -479,11 +580,11 @@ r$v3 <- ifelse(r$acueducto_24h == "si", 1,0)
 
 
 # % de hogares en los que todos los miembros del hogar duermen en la misma habitacion
-r$v4 <- ifelse(r$nr_cuartos_duermen == 1 & r$nr_personas_familia != 0, 1,0)
+r$v4 <- ifelse(r$nr_cuartos_duermen == 1 & r$nr_personas_hogar != 0, 1,0)
 
 
 # % de hogares en los que hay mas de 2 personas por habitacion
-r$personas_por_habitacion <- r$nr_personas_familia / as.numeric(as.character(r$nr_cuartos_total))
+r$personas_por_habitacion <- r$nr_personas_hogar / as.numeric(as.character(r$nr_cuartos_total))
 r$v5_i <- ifelse(r$personas_por_habitacion == 1,1,0)
 r$v5_ii <- ifelse(r$personas_por_habitacion > 1 & r$personas_por_habitacion < 2,1,0)
 r$v5_iii <- ifelse(r$personas_por_habitacion > 2,1,0)
@@ -552,7 +653,30 @@ loop_nutri_ninos023$n1 <- ifelse(loop_nutri_ninos023$recibio_leche_materna_ayer 
 loop_nutri_ninos023$n2 <- ifelse(loop_nutri_ninos023$nr_alimentos_solidos_ayer %in% c("ninguna", "una_vez", "dos_veces"), 1,0)
 
 
+#% de hogares que consumen alimentos vegetales ricos en vitamina A (verduras y tubérculos ricos en vitamina A, verduras de hoja verde oscura o frutas o frutas ricas en vitamina A).
+r$n13 <- ifelse(r$fcs_raices_ayer == "si" | r$fcs_vegetales_verdes_ayer == "si" | 
+                  r$fcs_frutas_naranja_ayer == "si",1,0)
+
+
+#% de hogares que consumen alimentos de origen animal ricos en vitamina A (carne de órganos, huevos o leche y productos lácteos)
+r$n14 <- ifelse(r$fcs_visceras_rojo_ayer == "si" | r$fcs_huevos_ayer == "si" | 
+                  r$fcs_leche_ayer == "si",1,0)
+
+
+#% de hogares que consumen una fuente vegetal o animal de vitamina A (verduras y tubérculos ricos en vitamina A o verduras de hoja verde oscura o frutas ricas en vitamina A o carne de órganos, o huevos, o leche y productos lácteos).
+r$n15 <- ifelse(r$n14 == 1 | r$n13 == 1, 1,0)
+
+
+#% de hogares que consumen carne de órganos, carne o pescado
+r$n16 <- ifelse(r$fcs_visceras_rojo_ayer == "si" | r$fcs_carne_ayer == "si" | 
+                  r$fcs_pescado_ayer == "si",1,0)
+
 
 return(r)
 }
+
+
+
+
+
 

@@ -212,6 +212,3 @@ loop_nutri_ninos023$n27_ii <- ifelse(loop_nutri_ninos023$zwfl > 3,1,0)
 
 
 
-
-
-

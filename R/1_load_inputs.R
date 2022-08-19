@@ -24,10 +24,10 @@ samplingframe <- load_samplingframe("./input/sampling_frame/strata_population.cs
 
 # LOAD DATA AND MERGE REPRESENTATIVE AND INDICATIVE DATA
 #data <- xlsform_fill(questions, choices, 500)
-response <- read.csv("Input/datasets/dirty/household_efsa_all_data_2022-07-18.csv", sep = ";",
+response <- read.csv("Input/datasets/cleaned/household_full_efsa_all_data_2022-08-11.csv", sep = ";",
                               stringsAsFactors=F, check.names=T,
                               na.strings = c("", " ", "NA", "#N/A", "N/A"))
-loop <- read.csv("Input/datasets/dirty/individual_efsa_all_data_2022-07-18.csv", sep = ";",
+loop <- read.csv("Input/datasets/cleaned/individual_full_efsa_all_data_2022-08-11.csv", sep = ";",
                  stringsAsFactors=F, check.names=T,
                  na.strings = c("", " ", "NA", "#N/A", "N/A"))
 
@@ -45,6 +45,23 @@ loop_nutri_mayores <- read.csv("Input/datasets/dirty/mayores_nutritional_data_20
                                 na.strings = c("", " ", "NA", "#N/A", "N/A"))
 #names(response)[names(response) == 'ï..X_uuid'] <- "X_uuid"
 #names(loop)[names(loop) == "ï..X_uuid"] <- "X_submission__uuid"
+
+# import cleaned vocacion de permanencia data
+#response_vdp <- read.csv("Input/datasets/cleaned/household_vdp_efsa_all_data_2022-08-03.csv", sep = ";",
+#                     stringsAsFactors=F, check.names=T,
+#                     na.strings = c("", " ", "NA", "#N/A", "N/A"))
+#loop_vdp <- read.csv("Input/datasets/cleaned/individual_vdp_efsa_all_data_2022-08-03.csv", sep = ";",
+#                 stringsAsFactors=F, check.names=T,
+#                 na.strings = c("", " ", "NA", "#N/A", "N/A"))
+#response <- response %>% filter(pop_group %in% c("pendular", "retornado", "transito", 
+#                                              "comunidad_de_acogida"))
+#common <- intersect(colnames(response), colnames(response_vdp))
+
+#row-bind only on common column names
+#response <- rbind(response[common], response_vdp[common])
+
+
+
 
 #add HNO stratas and governorates to dataset
 response$region <- case_when(response$departamento == "bogota_dc" | 

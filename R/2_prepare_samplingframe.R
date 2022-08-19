@@ -6,9 +6,12 @@ samplingframe$stratum <- paste(samplingframe$departamento, samplingframe$popgrou
 
 #ADD STRATA NAMES TO DATA 
 
-##OUT OF CAMP:
+## create strata for response dataset
 response <- response %>% 
-  mutate(strata = paste(departamento,pop_group, sep ="_"))
+  mutate(strata = paste(departamento,pop_group, sep ="_")) %>% 
+  filter(!strata %in% c("narino_pendular", "la_guajira_transito"))
+
+
 
 
 ##CHECK IF ALL MATCH SAMPLINGFRAME:
@@ -24,3 +27,4 @@ response$strata %find those not in% samplingframe$stratum
 if(any(is.na(response$strata))){
   warning("strata can not be NA")
 }
+
