@@ -24,7 +24,7 @@ samplingframe <- load_samplingframe("./input/sampling_frame/strata_population.cs
 
 # LOAD DATA AND MERGE REPRESENTATIVE AND INDICATIVE DATA
 #data <- xlsform_fill(questions, choices, 500)
-response <- read.csv("Input/datasets/cleaned/household_full_efsa_all_data_2022-08-11.csv", sep = ";",
+response <- read.csv("Input/datasets/cleaned/household_full_efsa_all_data_2022-08-22.csv", sep = ";",
                               stringsAsFactors=F, check.names=T,
                               na.strings = c("", " ", "NA", "#N/A", "N/A"))
 loop <- read.csv("Input/datasets/cleaned/individual_full_efsa_all_data_2022-08-11.csv", sep = ";",

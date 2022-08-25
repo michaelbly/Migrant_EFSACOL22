@@ -51,7 +51,7 @@ r$d6_v <- ifelse(r$nivel_estudios_jh == "sin_educacion", 1, 0)
 r$d6_vi <- ifelse(r$nivel_estudios_jh == "tecnico_tecnologico_completo", 1, 0)
 r$d6_vii <- ifelse(r$nivel_estudios_jh == "tecnico_tecnologico_incompleto", 1, 0)
 r$d6_viii <- ifelse(r$nivel_estudios_jh == "universitario_completo_o_postgrado", 1, 0)
-r$d6_iv <- ifelse(r$nivel_estudios_jh == "universitario_incompleto", 1, 0)
+r$d6_ix <- ifelse(r$nivel_estudios_jh == "universitario_incompleto", 1, 0)
 
 
 # % de hogares en los que el jefe del hogar tiene una discapacidad
@@ -86,16 +86,34 @@ r$d11 <- ifelse(r$ind1_genero == "transgenero" |
 loop_jefe <- loop[which(loop$parentesco == "jefe_del_hogar"), ]
 
 r$d12_i <-
-  ifelse(loop_jefe$edad[match(r$registro, loop_jefe$registro)] <= 18 ,
+  ifelse(loop_jefe$edad[match(r$registro, loop_jefe$registro)] <= 20 ,
          1,
          0)
 r$d12_ii <-
-  ifelse(loop_jefe$edad[match(r$registro, loop_jefe$`registro`)] > 18 & 
-           loop_jefe$edad[match(r$registro, loop_jefe$`registro`)] < 65,
+  ifelse(loop_jefe$edad[match(r$registro, loop_jefe$`registro`)] > 20 & 
+           loop_jefe$edad[match(r$registro, loop_jefe$`registro`)] < 31,
          1,
          0)
 r$d12_iii <-
-  ifelse(loop_jefe$edad[match(r$registro, loop_jefe$`registro`)] >= 65,
+  ifelse(loop_jefe$edad[match(r$registro, loop_jefe$`registro`)] > 30 & 
+           loop_jefe$edad[match(r$registro, loop_jefe$`registro`)] < 41,
+         1,
+         0)
+
+r$d12_iv <-
+  ifelse(loop_jefe$edad[match(r$registro, loop_jefe$`registro`)] > 40 & 
+           loop_jefe$edad[match(r$registro, loop_jefe$`registro`)] < 51,
+         1,
+         0)
+
+r$d12_v <-
+  ifelse(loop_jefe$edad[match(r$registro, loop_jefe$`registro`)] > 50 & 
+           loop_jefe$edad[match(r$registro, loop_jefe$`registro`)] < 61,
+         1,
+         0)
+
+r$d12_vi <-
+  ifelse(loop_jefe$edad[match(r$registro, loop_jefe$`registro`)] > 60,
          1,
          0)
 
@@ -106,17 +124,7 @@ r$d13 <-
            r$estado_civil_jh %in% c("esta_separado_a__o_divorciado_a_", "esta_soltero_a_", "esta_viudo_a_"), 1, 0)
 
 
-
-# % de hogares por rango de dependency ratio
-
-
-# % de hogares en los que al menos un nino en edad escolar no asiste a la escuela
-
-
-# % de hogares en los que al menos un nino que asiste a la escuela y no se beneficia del PAE
-r$ae2 <- ifelse(as.numeric(as.character(r$nr_escuela_colegio)) > as.numeric(as.character(r$nr_PAE)),1,0)
-r$ae2 <- ifelse(as.numeric(as.character(r$nr_escuela_colegio)) == 0,0,
-                r$ae2)
+#% de hogares por rango de dependency ratio (menos de 1.5; 1.5-2.5; 2.5+)
 
 
 # % de hogares por rangos de tamano del hogar 
@@ -133,6 +141,12 @@ r$d15_vi <- ifelse(r$nr_personas_hogar > 5, 1,0)
 # ASISTENCIA ESCOLAR
 ###############################################################
 # % de hogares en los que al menos un nino en edad escolar no asiste a la escuela
+
+
+# % de hogares en los que al menos un nino que asiste a la escuela y no se beneficia del PAE
+r$ae2 <- ifelse(as.numeric(as.character(r$nr_escuela_colegio)) > as.numeric(as.character(r$nr_PAE)),1,0)
+r$ae2 <- ifelse(as.numeric(as.character(r$nr_escuela_colegio)) == 0,0,
+                r$ae2)
 
 ###############################################################
 # SEGURIDAD ALIMENTARIA
@@ -181,10 +195,10 @@ r$exp_food <- ifelse(r$pop_group %in% c("pendular", "transito"), r$gastos_alimen
 
 
 r$exp_nonfood_30d <- as.numeric(apply(r[,c("gastos_renta", "gastos_electricidad", "gastos_higiene", 
-                                  "gastos_transporte", "gastos_comunicacion", "gastos_gasolina", "gastos_otros")], 
+                                  "gastos_transporte", "gastos_comunicacion", "gastos_gasolina", "gastos_otros", "gastos_lena")], 
                              1, sum, na.rm = T))
 r$exp_nonfood_30d <- ifelse(as.numeric(apply(r[,c("gastos_renta", "gastos_electricidad", "gastos_higiene", 
-                                           "gastos_transporte", "gastos_comunicacion", "gastos_gasolina", "gastos_otros")], 
+                                           "gastos_transporte", "gastos_comunicacion", "gastos_gasolina", "gastos_otros", "gastos_lena")], 
                                       1, function(x) sum(is.na(x)))) > 2,NA, r$exp_nonfood_30d)
 
 
@@ -330,6 +344,12 @@ r$sa9 <- ifelse(r$nr_comidas_7d != "3_comidas_o_mas",1,0)
 r$sa10 <- ifelse(r$nr_comidas_ayer != "3_comidas_o_mas",1,0)
 
 
+# % de hogares por estrategia de consumo
+r$sa11_i <- ifelse(r$csi_alimentos_menos_preferidos > 0, 1,0)
+r$sa11_ii <- ifelse(r$csi_pedir_prestados_alimentos > 0, 1,0)
+r$sa11_iii <- ifelse(r$csi_reducir_adultos > 0, 1,0)
+r$sa11_iv <- ifelse(r$csi_reducir_numero_comidas > 0, 1,0)
+r$sa11_v <- ifelse(r$csi_reducir_tamano_porciones > 0, 1,0)
 
 
 
@@ -466,7 +486,9 @@ r$fecha_llegada <-  format(r$fecha_llegada, "%Y-%m-%d")
 r$diff_dates = difftime(r$date_assessment, r$fecha_llegada, units = "days")
 r$m1_i <- ifelse(r$diff_dates <= 180, 1,0)
 r$m1_ii <- ifelse(r$diff_dates > 180 & r$diff_dates <= 360, 1,0)
-r$m1_iii <- ifelse(r$diff_dates > 360, 1,0)
+r$m1_iii <- ifelse(r$diff_dates > 360 & r$diff_dates <= 720, 1,0)
+r$m1_iv <- ifelse(r$diff_dates > 720, 1,0)
+
 
 r <- r %>% mutate(tiempo_en_pais = case_when(
   r$diff_dates <= 180 ~ "menos_6m",
@@ -575,8 +597,8 @@ r$v2_iv <- ifelse(r$servicios_alcantarillado == "si", 1,0)
 r$v2_v <- ifelse(r$servicios_recoleccion_basura == "si", 1,0)
 
 
-# % de hogares que reportan que el agua del acueducto llega las 24 horas del dia durante los siete dias de la semana
-r$v3 <- ifelse(r$acueducto_24h == "si", 1,0)
+# % de hogares que reportan que el agua del acueducto no llega las 24 horas del dia durante los siete dias de la semana
+r$v3 <- ifelse(r$acueducto_24h == "no", 1,0)
 
 
 # % de hogares en los que todos los miembros del hogar duermen en la misma habitacion
@@ -585,7 +607,7 @@ r$v4 <- ifelse(r$nr_cuartos_duermen == 1 & r$nr_personas_hogar != 0, 1,0)
 
 # % de hogares en los que hay mas de 2 personas por habitacion
 r$personas_por_habitacion <- r$nr_personas_hogar / as.numeric(as.character(r$nr_cuartos_total))
-r$v5_i <- ifelse(r$personas_por_habitacion == 1,1,0)
+r$v5_i <- ifelse(r$personas_por_habitacion <= 1,1,0)
 r$v5_ii <- ifelse(r$personas_por_habitacion > 1 & r$personas_por_habitacion < 2,1,0)
 r$v5_iii <- ifelse(r$personas_por_habitacion > 2,1,0)
 
@@ -670,6 +692,143 @@ r$n15 <- ifelse(r$n14 == 1 | r$n13 == 1, 1,0)
 #% de hogares que consumen carne de órganos, carne o pescado
 r$n16 <- ifelse(r$fcs_visceras_rojo_ayer == "si" | r$fcs_carne_ayer == "si" | 
                   r$fcs_pescado_ayer == "si",1,0)
+
+
+# % de hogares por FCS-N
+r <- r %>% 
+  mutate_at(vars(starts_with("fcs_") & !ends_with("ayer")), funs(as.numeric)) %>%
+  rowwise() %>% 
+  mutate(fg_vita = sum(fcs_leche, fcs_carne, fcs_huevos, 
+                                     fcs_vegetales_anaranjados, fcs_vegetales_verdes, fcs_frutas_naranja, na.rm = T)) %>%
+  mutate(fg_vita1 = ifelse(fg_vita == 0,1,0),
+         fg_vita2 = ifelse(fg_vita > 0 & fg_vita <= 6,1,0),
+         fg_vita3 = ifelse(fg_vita > 6,1,0)) %>%
+  
+  mutate(fg_protein = sum(fcs_leguminosas, fcs_leche, fcs_visceras_rojo, 
+                       fcs_carne_frescas, fcs_pescado, fcs_huevos, na.rm = T)) %>%
+  mutate(fg_protein1 = ifelse(fg_protein == 0,1,0),
+         fg_protein2 = ifelse(fg_protein > 0 & fg_protein <= 6,1,0),
+         fg_protein3 = ifelse(fg_protein > 6,1,0)) %>%
+  
+  mutate(fg_iron = sum(fcs_visceras_rojo, 
+                          fcs_carne_frescas, fcs_pescado, na.rm = T)) %>%
+  mutate(fg_iron1 = ifelse(fg_iron == 0,1,0),
+         fg_iron2 = ifelse(fg_iron > 0 & fg_iron <= 6,1,0),
+         fg_iron3 = ifelse(fg_iron > 6,1,0)) 
+
+
+
+# % de hogares por categoria HDDS
+bin_fcs <- function(x) (ifelse(x == "si",1,0))
+r <- r %>%
+  rowwise() %>%
+  mutate_at(vars(ends_with("_ayer")), bin_fcs) %>%
+  mutate(sum_hdds = sum(c(fcs_cereales_ayer, fcs_raices_ayer, fcs_vegetales_ayer, 
+                          fcs_frutas_ayer, fcs_carne_ayer, fcs_huevos_ayer, fcs_pescado_ayer,
+                          fcs_leguminosas_ayer, fcs_leche_ayer, fcs_grasas_ayer, fcs_azucares_ayer,
+                          fcs_condimentos_ayer), na.rm = T)) %>%
+  mutate(hdds_cat1 = ifelse(sum_hdds <= 2,1,0),
+         hdds_cat2 = ifelse(sum_hdds > 2 & sum_hdds <= 4,1,0),
+         hdds_cat3 = ifelse(sum_hdds == 5,1,0),
+         hdds_cat4 = ifelse(sum_hdds > 5,1,0))
+
+                        
+                        
+                        
+
+###############################################################
+# PRESENTATION ADD-ONS
+###############################################################
+# separate columns for income groups
+r$p1_i <- ifelse(r$ingreso_pp < 100000,1,0)
+r$p1_ii <- ifelse(r$ingreso_pp >= 100000 & r$ingreso_pp < 200000,1,0)
+r$p1_iii <- ifelse(r$ingreso_pp >= 200000 & r$ingreso_pp < 300000,1,0)
+r$p1_iv <- ifelse(r$ingreso_pp >= 300000,1,0)
+
+# column with income groups for disaggregation
+#r <- r %>% mutate(rangos_ingreso = case_when(
+#  r$ingreso_pp < 100000 ~ "100",
+#  r$ingreso_pp >= 100000 & r$ingreso_pp < 200000 ~ "100-200",
+#  r$ingreso_pp >= 200000 & r$ingreso_pp < 300000 ~ "200-300",
+#  r$ingreso_pp >= 300000 & r$ingreso_pp < 400000 ~ "300-400",
+#  r$ingreso_pp >= 400000 ~ "400"))
+
+
+# households having received assistance from UN, government or PMA
+r$p2 <- ifelse(r$asistencia_gobierno == "si" | r$asistencia_organizacion == "si" |
+                 r$asistencia_PMA == "si",1,0)
+
+
+# valor de deude por rangos
+r$valor_deuda <- as.numeric(as.character(r$valor_deuda))
+r$p3_i <- ifelse(r$valor_deuda < 500000,1,0)
+r$p3_ii <- ifelse(r$valor_deuda >= 500000 & r$valor_deuda < 1000000,1,0)
+r$p3_iii <- ifelse(r$valor_deuda >= 1000000 & r$valor_deuda < 5000000,1,0)
+r$p3_iv <- ifelse(r$valor_deuda >= 5000000,1,0)
+
+
+# tasa de dependencia por rangos
+loop$edad <- as.numeric(loop$edad)
+r <- loop %>% 
+  mutate(dependent = ifelse(edad < 15 | edad > 64,1,0),
+         independent = ifelse(edad >=15 & edad <= 64,1,0)) %>%
+  group_by(registro) %>%
+  dplyr::summarise(nr_dependent = sum(dependent),
+                   nr_independent = sum(independent),
+                   hh_size = n()) %>%
+  mutate(dependency_ratio = nr_dependent / nr_independent,
+         dependency_ratio = ifelse(dependency_ratio == "Inf", "all_dependent", dependency_ratio),
+         p4 = ifelse(dependency_ratio == "all_dependent",NA,dependency_ratio),
+         p4_i = ifelse(dependency_ratio == 0,1,0),
+         p4_i = ifelse(dependency_ratio == "all_dependent",0, p4_i),
+         
+         p4_ii = ifelse(dependency_ratio > 0 & dependency_ratio <= 0.5,1,0),
+         p4_ii = ifelse(dependency_ratio == "all_dependent",0, p4_ii),
+         
+         p4_iii = ifelse(dependency_ratio > 0.5 & dependency_ratio <= 1,1,0),
+         p4_iii = ifelse(dependency_ratio == "all_dependent",0, p4_iii),
+         
+         p4_iv = ifelse(dependency_ratio > 1,1,0),
+         p4_iv = ifelse(dependency_ratio == "all_dependent",0, p4_iv),
+         
+         p4_v = ifelse(dependency_ratio == "all_dependent",1,0)) %>%
+  select(starts_with("p4"), registro) %>%
+  right_join(r)
+
+
+r$p5 <- ifelse(r$d7 == 0 & r$d8 == 0 & r$d9 == 0,1,0)
+  
+
+# % de hogares que declaran vivir en una casa o apartamento
+r$p6 <- ifelse(r$tipo_vivienda == "casa" | r$tipo_vivienda == "apartamento",1,0)
+
+
+# % of households with an income of less than 100,000 pp who report not having received any assistance by government or non-governmental organisation
+r$p7 <- ifelse(r$ingreso_pp <= 100000 & r$asistencia_organizacion == "no" & r$asistencia_gobierno == "no",1,0)
+r$p7 <- ifelse(r$ingreso_pp > 100000, NA,
+               r$p7)
+
+
+r$p8 <- as.numeric(ifelse(r$pop_group %in% c("transito", "pendular"), (r$gastos_alimentos_gv / r$exp_total),0))
+
+
+
+r <- r %>% mutate(so18 = case_when(
+  r$valor_deuda > 2*r$ingreso ~ 1,
+  is.na(r$valor_deuda) ~ 0,
+  TRUE ~ 0
+))
+
+
+#r$so18 <- ifelse(r$valor_deuda > 2*r$ingreso,1,0)
+r$sa8_sa <- ifelse(r$cari < 1.5,1,0)
+r$sa8_sam <- ifelse(r$cari >= 1.5 & r$cari < 2.5,1,0)
+r$sa8_iam <- ifelse(r$cari >= 2.5 & r$cari < 3.5,1,0)
+r$sa8_ias <- ifelse(r$cari >= 3.5,1,0)
+
+r$seg_alimentaria <- ifelse(r$sa8_sa == 1 | r$sa8_sam == 1,1,0)
+r$inseg_alimentaria <- ifelse(r$sa8_iam == 1 | r$sa8_ias == 1,1,0)
+
 
 
 return(r)
