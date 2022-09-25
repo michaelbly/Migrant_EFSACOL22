@@ -75,31 +75,39 @@ weight_fun<-function(df){
 
 
 #RECODING OF INDICATORS
+#response <- expenditure_cleaner_6m(response)
 response_with_composites <- recoding_preliminary(response, loop)
 
 
-
-#gaggi <- response_with_composites %>% select(departamento, registro, sexo_jh, urbano_rural, starts_with("sa") | starts_with("so")) 
-#write.csv(gaggi, "Output/dataset/response_with_composites_sa se_vocacion permanencia_030822.csv")
+# export data in one single datasdet with household and loop data in separate sheets
+#response_with_composites$weights <- round(response_with_composites$weights, 3)
+#write_csv(response_with_composites, "Output/dataset/FINAL/dataset_with_composites_efsa22_final.csv")
+#xl_lst <- list('hogar' = response_with_composites, 'individual' = loop)
+#write.xlsx(xl_lst, file = sprintf("Output/dataset/efsa_all_data_%s.xlsx",today()))
+#write.csv(response_with_composites, "Output/dataset/efsa_all_data_con compuestos_310822.csv")
+#write.csv(loop, "Output/dataset/loop_efsa_all_data_con compuestos_310822.csv")
 
 
 #LOAD ANALYSISPLAN
-dap_name <- "presentation"
+dap_name <- "preliminary"
 analysisplan <- read.csv(sprintf("input/dap/dap_%s.csv",dap_name), stringsAsFactors = F, sep = ";")
 #analysisplan$independent.variable <-  "tiempo_en_pais"
-analysisplan$repeat.for.variable <- "pop_group"
+analysisplan$repeat.for.variable <- "d9"
 response_with_composites$one <- "one"
 analysisplan$independent.variable <- "one"
 
 
+analysisplan <- analysisplan %>% filter(dependent.variable %in% c("sa8_sa", "sa8_sam", "sa8_iam", "sa8_ias"))
+
+
 #AGGREGATE ACROSS DISTRICTS OR/AND POPULATION GROUPS
 #analysisplan <- analysisplan_nationwide(analysisplan)
-#analysisplan <- analysisplan_pop_group_aggregated(analysisplan)
+analysisplan <- analysisplan_pop_group_aggregated(analysisplan)
 #analysisplan$hypothesis.type <- "group_difference"
 
 
 
-#response_with_composites = response_with_composites[-1,]
+#response_with_composites <- response_with_composites %>% filter(pop_group %in% c("comunidad_de_acogida", "retornado", "vocacion_de_permanencia"))
 
 
 result <- from_analysisplan_map_to_output(response_with_composites, analysisplan = analysisplan,
@@ -107,7 +115,7 @@ result <- from_analysisplan_map_to_output(response_with_composites, analysisplan
                                           questionnaire = NULL, confidence_level = 0.95)
 
 
-name <- "nutrition_weighted_EFSA_analysis_departamento_grupo poblacion"
+name <- "model12_enfermedad mental_pop_group_nacional"
 saveRDS(result,paste(sprintf("output/RDS/result_%s.RDS", name)))
 
 summary <- bind_rows(lapply(result[[1]], function(x){x$summary.statistic}))
@@ -142,6 +150,4 @@ for (i in 1:length(groups)) {
     write.xlsx(df, file=sprintf("Output/summary_sorted/summary_sorted_%s.xlsx", name), sheetName=groups[i], append=TRUE, row.names=FALSE, showNA = F)
   }
 }
-
-
 

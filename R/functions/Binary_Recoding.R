@@ -239,6 +239,8 @@ r$sa4_ii_usd <- round(as.numeric(r$sa4_ii_cop / 4203),0)
 #  r$sa4 >= 0.65 & r$sa4 < 0.75 ~ 3,
 #  r$sa4 >= 0.75 ~ 4
 #))
+
+
 # % de hogares por vulnerabilidad economic gastos
 r$exp_pp <- r$exp_total / r$nr_personas_hogar
 r$exp_pp <- round(as.numeric(r$exp_pp),0)
@@ -388,16 +390,16 @@ r$so3_usd <- round(as.numeric(r$so3_cop / 4206),0)
 
 # % de hogares pobres (LP-DANE)
 r <- r %>% mutate(so4 = case_when(
-  r$ingreso_pp < 396182 & r$urbano_rural == "urbano" ~ 1,
-  r$ingreso_pp < 228725 & r$urbano_rural == "rural" ~ 1,
+  r$exp_pp < 396182 & r$urbano_rural == "urbano" ~ 1,
+  r$exp_pp < 228725 & r$urbano_rural == "rural" ~ 1,
   TRUE ~ 0
 ))
 
 
 # % de hogares en pobreza extrema (LPE-DANE)
 r <- r %>% mutate(so5 = case_when(
-  r$ingreso_pp < 178906 & r$urbano_rural == "urbano" ~ 1,
-  r$ingreso_pp < 125291 & r$urbano_rural == "rural" ~ 1,
+  r$exp_pp < 178906 & r$urbano_rural == "urbano" ~ 1,
+  r$exp_pp < 125291 & r$urbano_rural == "rural" ~ 1,
   TRUE ~ 0
 ))
 
@@ -746,12 +748,12 @@ r$p1_iii <- ifelse(r$ingreso_pp >= 200000 & r$ingreso_pp < 300000,1,0)
 r$p1_iv <- ifelse(r$ingreso_pp >= 300000,1,0)
 
 # column with income groups for disaggregation
-#r <- r %>% mutate(rangos_ingreso = case_when(
-#  r$ingreso_pp < 100000 ~ "100",
-#  r$ingreso_pp >= 100000 & r$ingreso_pp < 200000 ~ "100-200",
-#  r$ingreso_pp >= 200000 & r$ingreso_pp < 300000 ~ "200-300",
-#  r$ingreso_pp >= 300000 & r$ingreso_pp < 400000 ~ "300-400",
-#  r$ingreso_pp >= 400000 ~ "400"))
+r <- r %>% mutate(rangos_ingreso = case_when(
+                     ingreso_pp < 100000 | is.na(ingreso_pp) ~ "menos_100", 
+                     ingreso_pp >= 100000 & ingreso_pp < 200000 ~ "100_200",
+                     ingreso_pp >= 200000 & ingreso_pp < 300000 ~ "200_300",
+                     ingreso_pp >= 300000 & ingreso_pp < 400000 ~ "300_400",
+                     ingreso_pp >= 400000 ~ "mas_400"))
 
 
 # households having received assistance from UN, government or PMA
@@ -830,11 +832,189 @@ r$seg_alimentaria <- ifelse(r$sa8_sa == 1 | r$sa8_sam == 1,1,0)
 r$inseg_alimentaria <- ifelse(r$sa8_iam == 1 | r$sa8_ias == 1,1,0)
 
 
+r$etpv_registrado <- case_when(r$registracion_ETPV == "si_y_lo_finalizo" ~ "con_etpv", 
+                              r$registracion_ETPV == "si_y_no_lo_ha_finalizado" ~ "sin_etpv",
+                              r$registracion_ETPV == "no_ha_iniciado_el_proceso_de_registro" ~ "sin_etpv",
+                              r$registracion_ETPV == "ns_nr__strong__1__strong_" ~ "sin_etpv")
+
+
+
+r <- r %>% mutate(estado_sexo = case_when(
+  r$sexo_jh == "mujer" & r$estado_civil_jh == "esta_casado_a_" ~ "mujer_casado",
+  r$sexo_jh == "mujer" & r$estado_civil_jh == "esta_separado_a__o_divorciado_a_" ~ "mujer_divorciado",
+  r$sexo_jh == "mujer" & r$estado_civil_jh == "esta_soltero_a_" ~ "mujer_soltera",
+  r$sexo_jh == "mujer" & r$estado_civil_jh == "esta_viudo_a_" ~ "mujer_viudo",
+  r$sexo_jh == "mujer" & r$estado_civil_jh == "vive_en_union_libre" ~ "mujer_union_libre",
+  
+  TRUE ~ "hombre"
+))
+
+
+r <- r %>% mutate(nivel_estudios_grupo = case_when(
+  r$nivel_estudios_jh == "sin_educacion" | r$nivel_estudios_jh == "primaria_incompleta"  ~ "sin_educacion",
+  r$nivel_estudios_jh == "primaria_completa" | r$nivel_estudios_jh == "secundaria_incompleta"  ~ "primaria",
+  r$nivel_estudios_jh == "secundaria_completa" | r$nivel_estudios_jh == "universitario_incompleto" |
+  r$nivel_estudios_jh == "tecnico_tecnologico_incompleto" ~ "secundaria",
+  r$nivel_estudios_jh == "universitario_completo_o_postgrado" | r$nivel_estudios_jh == "tecnico_tecnologico_completo"  ~ "universitario_tecnico",
+  TRUE ~ "0"
+))
+
+
+r <- r %>% mutate(nivel_estudios_sexo = case_when(
+  (r$nivel_estudios_jh == "sin_educacion" | r$nivel_estudios_jh == "primaria_incompleta") & r$sexo_jh == "hombre"  ~ "sin_educacion_hombre",
+  (r$nivel_estudios_jh == "sin_educacion" | r$nivel_estudios_jh == "primaria_incompleta") & r$sexo_jh == "mujer"  ~ "sin_educacion_mujer",
+  
+  (r$nivel_estudios_jh == "primaria_completa" | r$nivel_estudios_jh == "secundaria_incompleta") & r$sexo_jh == "hombre"  ~ "primaria_hombre",
+  (r$nivel_estudios_jh == "primaria_completa" | r$nivel_estudios_jh == "secundaria_incompleta") & r$sexo_jh == "mujer"  ~ "primaria_mujer",
+  
+  (r$nivel_estudios_jh == "secundaria_completa" | r$nivel_estudios_jh == "universitario_incompleto" |
+    r$nivel_estudios_jh == "tecnico_tecnologico_incompleto") & r$sexo_jh == "mujer" ~ "secundaria_mujer",
+  (r$nivel_estudios_jh == "secundaria_completa" | r$nivel_estudios_jh == "universitario_incompleto" |
+    r$nivel_estudios_jh == "tecnico_tecnologico_incompleto") & r$sexo_jh == "hombre" ~ "secundaria_hombre",
+  
+  (r$nivel_estudios_jh == "universitario_completo_o_postgrado" | r$nivel_estudios_jh == "tecnico_tecnologico_completo") & r$sexo_jh == "hombre"  ~ "universitario_tecnico_hombre",
+  (r$nivel_estudios_jh == "universitario_completo_o_postgrado" | r$nivel_estudios_jh == "tecnico_tecnologico_completo") & r$sexo_jh == "mujer"  ~ "universitario_tecnico_mujer",
+  
+  TRUE ~ "0"
+))
+
+
+
+r$d15_i <- ifelse(r$nr_personas_hogar == 1, 1,0)
+r$d15_ii <- ifelse(r$nr_personas_hogar > 1 & r$nr_personas_hogar <= 2, 1,0)
+r$d15_iii <- ifelse(r$nr_personas_hogar > 2 & r$nr_personas_hogar <= 3, 1,0)
+r$d15_iv <- ifelse(r$nr_personas_hogar > 3 & r$nr_personas_hogar <= 4, 1,0)
+r$d15_v <- ifelse(r$nr_personas_hogar > 4 & r$nr_personas_hogar <= 5, 1,0)
+r$d15_vi <- ifelse(r$nr_personas_hogar > 5, 1,0)
+
+
+r <- r %>% mutate(grupos_personas_hogar = case_when(
+  r$nr_personas_hogar == 1  ~ "1",
+  r$nr_personas_hogar > 1 & r$nr_personas_hogar <= 2  ~ "1-2",
+  r$nr_personas_hogar > 2 & r$nr_personas_hogar <= 3 ~ "2-3",
+  r$nr_personas_hogar > 3 & r$nr_personas_hogar <= 4  ~ "3-4",
+  r$nr_personas_hogar > 4 & r$nr_personas_hogar <= 5 ~ "4-5",
+  r$nr_personas_hogar > 5 ~ ">5",
+  TRUE ~ "0"
+))
+
+
+r$discapacidad_jefe <- ifelse(r$discapacidad_jh == "mucha_dificultad" | 
+                 r$discapacidad_jh == "no_puede_hacer_nada", 1, 0)
+
+
+r <- r %>% mutate(discapacidad_jefe_sexo = case_when(
+  (r$discapacidad_jh == "mucha_dificultad" | r$discapacidad_jh == "no_puede_hacer_nada") & r$sexo_jh == "hombre"  ~ "con_discapacidad_hombre",
+  (r$discapacidad_jh == "mucha_dificultad" | r$discapacidad_jh == "no_puede_hacer_nada") & r$sexo_jh == "mujer"  ~ "con_discapacidad_mujer",
+  (r$discapacidad_jh == "alguna_dificultad" | r$discapacidad_jh == "ninguna_dificultad") & r$sexo_jh == "mujer"  ~ "sin_discapacidad_mujer",
+  (r$discapacidad_jh == "alguna_dificultad" | r$discapacidad_jh == "ninguna_dificultad") & r$sexo_jh == "hombre"  ~ "sin_discapacidad_hombre",
+  
+  TRUE ~ "0"
+))
+
+
+######################################################
+# Aditional analysis
+r <- r %>% mutate(pobreza_gastos = case_when(
+r$exp_pp < 396182 & r$exp_pp > 178906 & r$urbano_rural == "urbano" ~ 1,
+  r$exp_pp < 228725 & r$exp_pp > 125291 & r$urbano_rural == "rural" ~ 1,
+TRUE ~ 0
+))
+
+
+r <- r %>% mutate(pobreza_extrema_gastos = case_when(
+  r$exp_pp < 178906 & r$urbano_rural == "urbano" ~ 1,
+  r$exp_pp < 125291 & r$urbano_rural == "rural" ~ 1,
+  TRUE ~ 0
+))
+
+
+r$ahorros_si <- ifelse(r$lcs_gastar_ahorros == "si",1,0)
+r$ahorros_12meses <- ifelse(r$lcs_gastar_ahorros == "no__porque_ya_lo_habia_hecho_durante_los_ultimos_12_meses_y_no_podia_seguir_haciendolo",1,0)
+r$ahorros_nonecessario <- ifelse(r$lcs_gastar_ahorros == "no__porque_no_era_necesario",1,0)
+r$ahorros_noaplica <- ifelse(r$lcs_gastar_ahorros == "no_aplicable",1,0)
+
+r$credito_si <- ifelse(r$lcs_comprar_credito == "si",1,0)
+r$credito_12meses <- ifelse(r$lcs_comprar_credito == "no__porque_ya_lo_habia_hecho_durante_los_ultimos_12_meses_y_no_podia_seguir_haciendolo",1,0)
+r$credito_nonecessario <- ifelse(r$lcs_comprar_credito == "no__porque_no_era_necesario",1,0)
+r$credito_noaplica <- ifelse(r$lcs_comprar_credito == "no_aplicable",1,0)
+
+r$activos_si <- ifelse(r$lcs_vender_activos == "si",1,0)
+r$activos_12meses <- ifelse(r$lcs_vender_activos == "no__porque_ya_lo_habia_hecho_durante_los_ultimos_12_meses_y_no_podia_seguir_haciendolo",1,0)
+r$activos_nonecessario <- ifelse(r$lcs_vender_activos == "no__porque_no_era_necesario",1,0)
+r$activos_noaplica <- ifelse(r$lcs_vender_activos == "no_aplicable",1,0)
+
+r$reducir_si <- ifelse(r$lcs_reducir_gastos_salud_educacion == "si",1,0)
+r$reducir_12meses <- ifelse(r$lcs_reducir_gastos_salud_educacion == "no__porque_ya_lo_habia_hecho_durante_los_ultimos_12_meses_y_no_podia_seguir_haciendolo",1,0)
+r$reducir_nonecessario <- ifelse(r$lcs_reducir_gastos_salud_educacion == "no__porque_no_era_necesario",1,0)
+r$reducir_noaplica <- ifelse(r$lcs_reducir_gastos_salud_educacion == "no_aplicable",1,0)
+
+
+
+#r <- loop %>% group_by(registro) %>%
+#                  dplyr::summarise(adultos = sum(edad >= 18), 
+#                                   ninos = sum(edad < 18)) %>%
+#                  mutate(monoparental = ifelse(adultos == 1 & ninos > 0,1,0)) %>%
+##                  select(registro, monoparental) %>%
+#                  filter(!(registro %in% c(7027, 7052, 7053, 7219, 7913, 8392, 8966))) %>%
+#                  left_join(r, by = "registro")
+
+
+#r <- loop %>% mutate(age_group_jh = case_when(
+#                  parentesco == "jefe_del_hogar" & edad >= 18 & edad < 30 ~ "18-30",
+#                  parentesco == "jefe_del_hogar" & edad >= 30 & edad < 40 ~ "30-40",
+#                  parentesco == "jefe_del_hogar" & edad >= 40 & edad < 50 ~ "40-50",
+#                  parentesco == "jefe_del_hogar" & edad >= 50 & edad < 60 ~ "50-60",
+#                  parentesco == "jefe_del_hogar" & edad >= 60 ~ ">60"
+#                  )) %>%   
+#                 group_by(registro) %>%
+#                  filter(!is.na(age_group_jh)) %>%
+#                  select(registro, age_group_jh) %>%
+#                  full_join(r, by = "registro")
+
+
+
+
 
 return(r)
 }
 
 
+
+###################################################
+# replace NA in 6m expenditure data with means
+expenditure_cleaner_6m <- function(r) {
+  
+  ###########################
+  # gastos de 6 meses
+  r$gastos_medicos <- ifelse(r$gastos_medicos == 99 | (r$gastos_medicos > 10*sd(r$gastos_medicos, na.rm = T)), 
+                             round(mean(r$gastos_medicos, na.rm = T),0), r$gastos_medicos)
+  
+  r$gastos_vestimenta <- ifelse(r$gastos_vestimenta == 99 | (r$gastos_vestimenta > 10*sd(r$gastos_vestimenta, na.rm = T)), 
+                                round(mean(r$gastos_vestimenta, na.rm = T),0), r$gastos_vestimenta)
+  
+  r$gastos_educacion <- ifelse(r$gastos_educacion == 99 | (r$gastos_educacion > 10*sd(r$gastos_educacion, na.rm = T)), 
+                               round(mean(r$gastos_educacion, na.rm = T),0), r$gastos_educacion)
+  
+  r$gastos_deudas <- ifelse(r$gastos_deudas == 99 | (r$gastos_deudas > 10*sd(r$gastos_deudas, na.rm = T)), 
+                            round(mean(r$gastos_deudas, na.rm = T),0), r$gastos_deudas)
+  
+  r$gastos_insumos <- ifelse(r$gastos_insumos == 99 | (r$gastos_insumos > 10*sd(r$gastos_insumos, na.rm = T)), 
+                             round(mean(r$gastos_insumos, na.rm = T),0), r$gastos_insumos)
+  
+  r$gastos_construccion <- ifelse(r$gastos_construccion == 99 | (r$gastos_construccion > 10*sd(r$gastos_construccion, na.rm = T)), 
+                                  round(mean(r$gastos_construccion, na.rm = T),0), r$gastos_construccion)
+  
+  r$gastos_seguros <- ifelse(r$gastos_seguros == 99 | (r$gastos_seguros > 10*sd(r$gastos_seguros, na.rm = T)), 
+                             round(mean(r$gastos_seguros, na.rm = T),0), r$gastos_seguros)
+  
+  r$gastos_textiles <- ifelse(r$gastos_textiles == 99 | (r$gastos_textiles > 10*sd(r$gastos_textiles, na.rm = T)), 
+                              round(mean(r$gastos_textiles, na.rm = T),0), r$gastos_textiles)
+  
+  
+  
+  return(r)
+}
 
 
 
