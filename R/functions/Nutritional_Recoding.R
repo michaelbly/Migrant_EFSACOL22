@@ -1,3 +1,5 @@
+library(anthro)
+
 loop_nutri <- read.csv("Input/datasets/dirty/nutrition/full_nutritional_data_2022-09-24.csv", sep = ",",
                                stringsAsFactors=F, check.names=T,
                                na.strings = c("", " ", "NA", "#N/A", "N/A"))
@@ -6,62 +8,75 @@ loop_nutri <- response %>% select("registro", "weights") %>%
                                       right_join(loop_nutri, by = "registro")
 
 
-# generate loop data
-loop_nutri_ninos023 <- loop_nutri %>% dplyr::select(registro, pop_group, sexo, weights, which(endsWith(names(loop_nutri), "_ninos023"))) %>%
-  filter(final_talla_infantil_ninos023 != "") %>%
+loop_nutri <- loop_nutri %>% mutate(nutri_group = case_when(
+  edad_ninos023 != "" ~ "ninos023", 
+  edad_ninos2459 != "" ~ "ninos2459",
+  edad_gestante != "" ~ "gestante",
+  final_peso_mayores != "" ~ "mayores")) %>%
   mutate(across(c(5:last_col()), na_if, 999)) %>%
-  mutate(across(c(5:last_col()), na_if, 999.0))
+  mutate(across(c(5:last_col()), na_if, 999.0)) 
+
+loop_nutri$edad_ninos059 <- ifelse(loop_nutri$edad_ninos023 != 0, 
+                                   loop_nutri$edad_ninos023, loop_nutri$edad_ninos2459)
+loop_nutri$final_peso_ninos059 <- ifelse(loop_nutri$edad_ninos023 != 0, 
+                                   loop_nutri$final_peso_infante_ninos023, loop_nutri$final_peso_ninos2459)
+loop_nutri$final_talla_ninos059 <- ifelse(loop_nutri$edad_ninos023 != 0, 
+                                         loop_nutri$final_talla_infantil_ninos023, loop_nutri$final_peso_ninos2459)
 
 
+recoding_antro_ninos023 <- function(loop_nutri) {
 
-library(anthro)
+loop_nutri_ninos059 <- loop_nutri %>% filter(nutri_group %in% c("ninos023", "ninos2459"))
+
 
 #######################################
 # calculate the z-scores for children 023
-names(loop_nutri_ninos023)
-loop_nutri_ninos023 <- loop_nutri_ninos023 %>% mutate(sexo = case_when(
+names(loop_nutri_ninos059)
+loop_nutri_ninos059 <- loop_nutri_ninos059 %>% mutate(sexo = case_when(
   sexo == "hombre" ~ "m",
   sexo == "mujer" ~ "f",
 ))
-loop_nutri_ninos023$measurement <- "h"
+loop_nutri_ninos059$measurement <- "h"
 
-growth_zscores023 <-  anthro_zscores(
-  sex = loop_nutri_ninos023$sexo,
-  age = loop_nutri_ninos023$edad_ninos023,
+growth_zscores059 <-  anthro_zscores(
+  sex = loop_nutri_ninos059$sexo,
+  age = loop_nutri_ninos059$edad_ninos059,
   is_age_in_month = TRUE,
-  weight = loop_nutri_ninos023$final_peso_infante_ninos023,
-  lenhei = loop_nutri_ninos023$final_talla_infantil_ninos023
+  weight = loop_nutri_ninos059$final_peso_ninos059,
+  lenhei = loop_nutri_ninos059$final_talla_ninos059
 )
 
 #select zlen (length for age), zwei (weight for age), zwfl (weight for length), zbmi (bmi for age)
-growth_zscores023 <- growth_zscores023[,c("zlen", "zwei", "zwfl", "zbmi")]
-loop_nutri_ninos023 <- cbind(loop_nutri_ninos023, growth_zscores023)
+growth_zscores059 <- growth_zscores059[,c("zlen", "zwei", "zwfl", "zbmi")]
+loop_nutri_ninos059 <- cbind(loop_nutri_ninos059, growth_zscores059)
 
 
 # % de niños menores de 5 años con retraso en el crecimiento (< -2 z-score)
-#extreme and moderate stunting
-loop_nutri_ninos023$n24_i <- ifelse(loop_nutri_ninos023$zlen < -2 & loop_nutri_ninos023$zlen >= -3,1,0)
-loop_nutri_ninos023$n24_ii <- ifelse(loop_nutri_ninos023$zlen < -3,1,0)
+#moderate and severe
+loop_nutri_ninos059$n24_i <- ifelse(loop_nutri_ninos059$zlen < -2 & loop_nutri_ninos059$zlen >= -3,1,0)
+loop_nutri_ninos059$n24_ii <- ifelse(loop_nutri_ninos059$zlen < -3,1,0)
 
 
 # % de niños menores de 5 años con peso inferior al normal (< -2  z-score)
 #severe and moderate underweight
-loop_nutri_ninos023$n25_i <- ifelse(loop_nutri_ninos023$zwei < -2 & loop_nutri_ninos023$zwei >= -3,1,0)
-loop_nutri_ninos023$n25_ii <- ifelse(loop_nutri_ninos023$zwei < -3,1,0)
+loop_nutri_ninos059$n25_i <- ifelse(loop_nutri_ninos059$zwei < -2 & loop_nutri_ninos059$zwei >= -3,1,0)
+loop_nutri_ninos059$n25_ii <- ifelse(loop_nutri_ninos059$zwei < -3,1,0)
 
 
 #% de niños menores de 5 años con emaciación (< -2 z-score)
 #severe wasting and moderate wasting
-loop_nutri_ninos023$n26_i <- ifelse(loop_nutri_ninos023$zwfl < -2 & loop_nutri_ninos023$zwfl >= -3,1,0)
-loop_nutri_ninos023$n26_ii <- ifelse(loop_nutri_ninos023$zwfl < -3,1,0)
+loop_nutri_ninos059$n26_i <- ifelse(loop_nutri_ninos059$zwfl < -2 & loop_nutri_ninos059$zwfl >= -3,1,0)
+loop_nutri_ninos059$n26_ii <- ifelse(loop_nutri_ninos059$zwfl < -3,1,0)
 
 
 #% de niños menores de 5 años con sobrepeso (> +2 puntuación z)
 #overweight and obesity
-loop_nutri_ninos023$n27_i <- ifelse(loop_nutri_ninos023$zwfl <= 3 & loop_nutri_ninos023$zwfl > 2,1,0)
-loop_nutri_ninos023$n27_ii <- ifelse(loop_nutri_ninos023$zwfl > 3,1,0)
+loop_nutri_ninos059$n27_i <- ifelse(loop_nutri_ninos059$zwfl <= 3 & loop_nutri_ninos059$zwfl > 2,1,0)
+loop_nutri_ninos059$n27_ii <- ifelse(loop_nutri_ninos059$zwfl > 3,1,0)
 
 
+return(loop_nutri_ninos059)
+}
 
 
 
